@@ -5,4 +5,4 @@ class Fitness(object):
         '''
         returns the fitness to a given state
         '''
-        raise NotImplemented("Please Implement this method")
+        raise NotImplemented("Please Implement this method.")

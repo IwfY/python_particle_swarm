@@ -16,12 +16,29 @@ class Particle(object):
         '''
         return self.__fitnessObject.fitness(self.state)
 
-
-    def move(self, globalBestState):
+    def move(self):
         '''
-        recalculate the velocity, move accordingly, update own best state
+        move according to velocity and update own best state
         '''
         pass
+
+
+    def updateVelocity(self, globalBestState, multiplier, oldVelocityMultiplier, globalBestStateMultiplier, localBestStateMultiplier):
+        '''
+        recalculate the velocity
+
+        @param globalBestState Dictionary holding the global best state
+        @param multiplier multiplier for the new velocity
+        @param multiplier multiplier for the influence of the old velocity
+        @param globalBestStateMultiplier multiplier for the influence of the global best to the velocity
+        @param localBestStateMultiplier multiplier for the influence of the local best to the velocity
+        '''
+
+        for key in __state.keys():
+            deltaVelocityGlobalBest[key] =  globalBestStateMultiplier * (globalBestState[key] - self.__state[key])
+            deltaVelocityLocalBest[key] = localBestStateMultiplier * (self.__bestState[key] - self.__state[key])
+
+            velocity[key] = multiplier * (oldVelocityMultiplier * velocity[key] + deltaVelocityGlobalBest[key] + deltaVelocityLocalBest[key])
 
 
     def getState(self):
