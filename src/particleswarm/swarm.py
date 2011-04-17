@@ -54,3 +54,15 @@ class Swarm(object):
 
 	def getParticles(self):
 		return self.__particles
+
+	def getBestParticle(self):
+		bestParticle = self.__particles[0]
+		lowestFitness = bestParticle.fitness()
+
+		for particle in self.__particles:
+			currentFitness = particle.fitness()
+			if currentFitness < lowestFitness:
+				bestParticle = particle
+				lowestFitness = currentFitness
+
+		return bestParticle
