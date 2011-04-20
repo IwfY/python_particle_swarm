@@ -1,3 +1,4 @@
+import math
 from particleswarm.particle import Particle
 
 class Swarm(object):
@@ -11,6 +12,8 @@ class Swarm(object):
 		self.__bestState = None
 		self.__fitnessObject = None
 
+	def findsolution(self, fitnessAccepted=0.0, maxTurns=100):
+		pass
 
 	def setFitnessObject(self, fitnessObject):
 		self.__fitnessObject = fitnessObject
@@ -28,7 +31,44 @@ class Swarm(object):
 			zero		velocity is zero
 			random		velocity is a random vector
 		"""
-		pass
+
+		initialStates = [{}]
+
+		if distribution == "uniform":
+			particlesPerDimension = int(math.floor(math.pow(particleCount, 1 / self.dimensionCount())))
+
+			for dimension in self.__dimensions:
+				stepPerState = (dimension[2] - dimension[1]) / (particlesPerDimension - 1)
+				tmpStates = []
+				rmStates = []
+				for state in initialStates:
+					for i in range(particlesPerDimension):
+						tmpState = state.copy()
+						tmpState[dimension[0]] = dimension[1] + i * stepPerState
+						tmpStates.append(tmpState)
+						#end for i in range(particlesPerDimension)
+
+					rmStates.append(state)
+					#end for state in initialStates
+
+				for state in rmStates:
+					initialStates.remove(state)
+
+				initialStates.extend(tmpStates)
+				#end for dimension in self.__dimensions
+		elif distribution == "random":
+			pass
+
+
+		if initialVelocityMethod == "zero":
+			velocity = {}
+			for dimension in self.__dimensions:
+				velocity[dimension[0]] = 0.0
+
+			for state in initialStates:
+				self.__particles.append(Particle(state, velocity, self.__fitnessObject))
+		elif initialVelocityMethod == "random":
+			pass
 
 
 	def addDimension(self, name, lowerLimit=0.0, upperLimit=1.0):
@@ -45,7 +85,7 @@ class Swarm(object):
 		self.__dimensions.append((name, float(lowerLimit), float(upperLimit)))
 		return True
 
-	def getDimensionCount(self):
+	def dimensionCount(self):
 		return len(self.__dimensions)
 
 	def getDimensions(self):
@@ -66,3 +106,9 @@ class Swarm(object):
 				lowestFitness = currentFitness
 
 		return bestParticle
+
+
+	def getBestParticleFitness(self):
+		bestParticle = self.getBestParticle()
+
+		return bestParticle.fitness()
