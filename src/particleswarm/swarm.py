@@ -66,7 +66,7 @@ class Swarm(object):
 				velocity[dimension[0]] = 0.0
 
 			for state in initialStates:
-				self.__particles.append(Particle(state, velocity, self.__fitnessObject))
+				self.__particles.append(Particle(state, velocity.copy(), self.__fitnessObject))
 		elif initialVelocityMethod == "random":
 			pass
 
