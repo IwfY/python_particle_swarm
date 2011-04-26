@@ -4,7 +4,7 @@ from particleswarm.fitness import Fitness
 
 class Fitness1(Fitness):
 	def fitness(self, state):
-		return abs(state["x"] + state["y"] - 5)
+		return abs(pow(state["x"], 3) + 0.5 * state["y"] - 20.5)
 
 
 class TestSwarm(unittest.TestCase):
