@@ -22,4 +22,4 @@ class TestSwarm(unittest.TestCase):
 		self.assertEqual(s1.getDimensions()[1], ("y", -5, 5))
 		self.assertEqual(len(s1.getDimensions()), 2)
 
-		self.assertEqual(len(s1.getDimensions()), s1.getDimensionCount())
+		self.assertEqual(len(s1.getDimensions()), s1.dimensionCount())
