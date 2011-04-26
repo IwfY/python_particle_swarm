@@ -32,10 +32,22 @@ class Swarm(object):
 			random		velocity is a random vector
 		"""
 
+		if self.dimensionCount() == 0:
+			return False
+
+		if particleCount < 1:
+			return False
+
+		if self.__fitnessObject == None:
+			return False
+
+
 		initialStates = [{}]
 
 		if distribution == "uniform":
 			particlesPerDimension = int(math.floor(math.pow(particleCount, 1 / self.dimensionCount())))
+			if particlesPerDimension < 1:
+				return False
 
 			for dimension in self.__dimensions:
 				stepPerState = (dimension[2] - dimension[1]) / (particlesPerDimension - 1)
@@ -70,6 +82,7 @@ class Swarm(object):
 		elif initialVelocityMethod == "random":
 			pass
 
+		return True
 
 	def addDimension(self, name, lowerLimit=0.0, upperLimit=1.0):
 		"""
@@ -95,7 +108,7 @@ class Swarm(object):
 	def getParticles(self):
 		return self.__particles
 
-	def getBestParticle(self):
+	def getCurrentBestParticle(self):
 		bestParticle = self.__particles[0]
 		lowestFitness = bestParticle.fitness()
 
@@ -108,7 +121,18 @@ class Swarm(object):
 		return bestParticle
 
 
-	def getBestParticleFitness(self):
+	def getCurrentBestParticleFitness(self):
 		bestParticle = self.getBestParticle()
 
 		return bestParticle.fitness()
+
+	def updateBestState(self):
+		if self.getCurrentBestParticle().fitness() < self.__fitnessObject.fitness(self.__bestState):
+			self.__bestState = self.getCurrentBestParticle().getState()
+
+
+	def getBestFitness(self):
+		"""
+		get the fitness of the historical best known state
+		"""
+		return self.__fitnessObject.fitness(self.__bestState)
