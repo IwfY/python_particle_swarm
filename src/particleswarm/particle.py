@@ -34,7 +34,7 @@ class Particle(object):
 
 		@param globalBestState Dictionary holding the global best state
 		@param multiplier multiplier for the new velocity
-		@param multiplier multiplier for the influence of the old velocity
+		@param oldVelocityMultiplier multiplier for the influence of the old velocity
 		@param globalBestStateMultiplier multiplier for the influence of the global best to the velocity
 		@param localBestStateMultiplier multiplier for the influence of the local best to the velocity
 		'''
