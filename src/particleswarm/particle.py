@@ -3,7 +3,11 @@ class Particle(object):
 	class represents a single particle
 	'''
 
+	__lastId = 1
+
 	def __init__(self, state, velocity, fitnessObject):
+		self.__id = Particle.__lastId
+		Particle.__lastId += 1
 		self.__state = state
 		self.__bestState = state.copy()
 		self.__velocity = velocity
@@ -47,6 +51,8 @@ class Particle(object):
 
 			self.__velocity[key] = multiplier * (oldVelocityMultiplier * self.__velocity[key] + deltaVelocityGlobalBest[key] + deltaVelocityLocalBest[key])
 
+	def getId(self):
+		return self.__id
 
 	def getState(self):
 		return self.__state
