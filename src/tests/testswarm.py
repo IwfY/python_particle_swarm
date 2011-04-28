@@ -45,5 +45,5 @@ class TestSwarm(unittest.TestCase):
 		s1.setFitnessObject(Fitness1())
 		s1.populate()
 
-		s1.findsolution(0.01)
-		self.assertLessEqual(Fitness1().fitness(s1.getBestState()), 0.01)
+		s1.findsolution(0.00001)
+		self.assertLessEqual(Fitness1().fitness(s1.getBestState()), 0.00001)
