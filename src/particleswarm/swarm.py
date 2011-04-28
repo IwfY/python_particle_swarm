@@ -13,7 +13,20 @@ class Swarm(object):
 		self.__fitnessObject = None
 
 	def findsolution(self, fitnessAccepted=0.0, maxTurns=100):
-		pass
+		if len(self.__particles) == 0:
+			return False
+
+		for i in range(maxTurns):
+			self.updateBestState()
+
+			if self.__fitnessObject.fitness(self.__bestState) < fitnessAccepted:
+				break
+			for particle in self.__particles:
+				particle.updateVelocity(self.__bestState, 1.0, 0.3, 0.3, 0.3)
+				particle.move()
+
+		self.updateBestState()
+
 
 	def setFitnessObject(self, fitnessObject):
 		self.__fitnessObject = fitnessObject
@@ -84,6 +97,7 @@ class Swarm(object):
 
 		return True
 
+
 	def addDimension(self, name, lowerLimit=0.0, upperLimit=1.0):
 		"""
 		add a dimension to the problem space
@@ -122,12 +136,14 @@ class Swarm(object):
 
 
 	def getCurrentBestParticleFitness(self):
-		bestParticle = self.getBestParticle()
+		bestParticle = self.getCurrentBestParticle()
 
 		return bestParticle.fitness()
 
 	def updateBestState(self):
-		if self.getCurrentBestParticle().fitness() < self.__fitnessObject.fitness(self.__bestState):
+		if self.__bestState == None:
+			self.__bestState = self.getCurrentBestParticle().getState()
+		elif self.getCurrentBestParticleFitness() < self.__fitnessObject.fitness(self.__bestState):
 			self.__bestState = self.getCurrentBestParticle().getState()
 
 
@@ -136,3 +152,6 @@ class Swarm(object):
 		get the fitness of the historical best known state
 		"""
 		return self.__fitnessObject.fitness(self.__bestState)
+
+	def getBestState(self):
+		return self.__bestState

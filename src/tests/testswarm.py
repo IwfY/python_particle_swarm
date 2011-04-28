@@ -37,3 +37,13 @@ class TestSwarm(unittest.TestCase):
 		s1.setFitnessObject(Fitness1())
 		self.assertTrue(s1.populate(25))
 		self.assertEqual(len(s1.getParticles()), 25)
+
+	def testFindSolution(self):
+		s1 = Swarm()
+		s1.addDimension("x", -10, 10)
+		s1.addDimension("y", -10, 10)
+		s1.setFitnessObject(Fitness1())
+		s1.populate()
+
+		s1.findsolution(0.01)
+		self.assertLessEqual(Fitness1().fitness(s1.getBestState()), 0.01)
