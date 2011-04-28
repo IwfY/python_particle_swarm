@@ -1,10 +1,15 @@
 import unittest
+import math
 from particleswarm.swarm import Swarm
 from particleswarm.fitness import Fitness
 
 class Fitness1(Fitness):
 	def fitness(self, state):
 		return abs(pow(state["x"], 3) + 0.5 * state["y"] - 20.5)
+
+class Fitness2(Fitness):
+	def fitness(self, state):
+		return abs(pow(state["x"], 3) + 0.5 * state["y"] - 20.5 + math.log(abs(state["z"] + 1)))
 
 
 class TestSwarm(unittest.TestCase):
@@ -43,7 +48,19 @@ class TestSwarm(unittest.TestCase):
 		s1.addDimension("x", -10, 10)
 		s1.addDimension("y", -10, 10)
 		s1.setFitnessObject(Fitness1())
-		s1.populate()
+		s1.populate(27)
 
-		s1.findsolution(0.00001)
+		s1.findsolution(0.00001, 100)
 		self.assertLessEqual(Fitness1().fitness(s1.getBestState()), 0.00001)
+
+	def testFindSolution2(self):
+		s1 = Swarm()
+		s1.addDimension("x", -10, 10)
+		s1.addDimension("y", -10, 10)
+		s1.addDimension("z", -10, 10)
+		s1.setFitnessObject(Fitness2())
+		s1.populate(27)
+
+		s1.findsolution(0.00001, 100)
+		self.assertLessEqual(Fitness2().fitness(s1.getBestState()), 0.00001)
+

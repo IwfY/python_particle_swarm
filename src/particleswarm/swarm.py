@@ -18,11 +18,13 @@ class Swarm(object):
 
 		for i in range(maxTurns):
 			self.updateBestState()
+			#print(i - 1,"current:" , self.getCurrentBestParticle().getId(), self.getCurrentBestParticle().fitness(), "global:", self.__bestState, self.__fitnessObject.fitness(self.__bestState))
 
 			if self.__fitnessObject.fitness(self.__bestState) < fitnessAccepted:
 				break
 			for particle in self.__particles:
-				particle.updateVelocity(self.__bestState, 1.0, 0.3, 0.3, 0.3)
+				#print("p" + str(particle.getId()), particle.getState(), particle.getVelocity(), particle.getBestState(), particle.fitness(), sep="\t")
+				particle.updateVelocity(self.__bestState, 0.5, 0.3, 0.3, 0.3)
 				particle.move()
 
 		self.updateBestState()
