@@ -11,6 +11,10 @@ class Swarm(object):
 		self.__dimensions = []
 		self.__bestState = None
 		self.__fitnessObject = None
+		self.__vuMultiplier = 0.5
+		self.__vuOldVelocityMultiplier = 0.3
+		self.__vuGlobalBestStateMultiplier = 0.3
+		self.__vuLocalBestStateMultiplier = 0.3
 
 	def findsolution(self, fitnessAccepted=0.0, maxTurns=100):
 		if len(self.__particles) == 0:
@@ -24,7 +28,11 @@ class Swarm(object):
 				break
 			for particle in self.__particles:
 				#print("p" + str(particle.getId()), particle.getState(), particle.getVelocity(), particle.getBestState(), particle.fitness(), sep="\t")
-				particle.updateVelocity(self.__bestState, 0.5, 0.3, 0.3, 0.3)
+				particle.updateVelocity(self.__bestState,
+										self.__vuMultiplier,
+										self.__vuOldVelocityMultiplier,
+										self.__vuGlobalBestStateMultiplier,
+										self.__vuLocalBestStateMultiplier)
 				particle.move()
 
 		self.updateBestState()
@@ -32,6 +40,16 @@ class Swarm(object):
 
 	def setFitnessObject(self, fitnessObject):
 		self.__fitnessObject = fitnessObject
+
+	def setVelocityUpdateParameters(self,
+									multiplier,
+									oldVelocityMultiplier,
+									globalBestStateMultiplier,
+									localBestStateMultiplier):
+		self.__vuMultiplier = multiplier
+		self.__vuOldVelocityMultiplier = oldVelocityMultiplier
+		self.__vuGlobalBestStateMultiplier = globalBestStateMultiplier
+		self.__vuLocalBestStateMultiplier = localBestStateMultiplier
 
 
 	def populate(self, particleCount=100, distribution="uniform", initialVelocityMethod="zero"):
