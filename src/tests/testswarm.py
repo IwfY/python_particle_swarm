@@ -1,5 +1,6 @@
 import unittest
 import math
+import os
 from particleswarm.swarm import Swarm
 from particleswarm.fitness import Fitness
 
@@ -64,3 +65,11 @@ class TestSwarm(unittest.TestCase):
 		s1.findsolution(0.00001, 100)
 		self.assertLessEqual(Fitness2().fitness(s1.getBestState()), 0.00001)
 
+	def testDatabase(self):
+		s1 = Swarm()
+		s1.setDatabase("/tmp/psdatabasetest.db")
+
+		self.assertTrue(os.path.exists("/tmp/psdatabasetest.db"))
+
+		del s1
+		os.remove("/tmp/psdatabasetest.db")

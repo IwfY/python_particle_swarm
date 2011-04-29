@@ -1,4 +1,6 @@
 import math
+import os
+import sqlite3
 from particleswarm.particle import Particle
 
 class Swarm(object):
@@ -15,6 +17,11 @@ class Swarm(object):
 		self.__vuOldVelocityMultiplier = 0.3
 		self.__vuGlobalBestStateMultiplier = 0.3
 		self.__vuLocalBestStateMultiplier = 0.3
+		self.__database = None
+
+	def __del__(self):
+		if self.__database != None:
+			self.__database.close()
 
 	def findsolution(self, fitnessAccepted=0.0, maxTurns=100):
 		if len(self.__particles) == 0:
@@ -41,6 +48,7 @@ class Swarm(object):
 	def setFitnessObject(self, fitnessObject):
 		self.__fitnessObject = fitnessObject
 
+
 	def setVelocityUpdateParameters(self,
 									multiplier,
 									oldVelocityMultiplier,
@@ -50,6 +58,21 @@ class Swarm(object):
 		self.__vuOldVelocityMultiplier = oldVelocityMultiplier
 		self.__vuGlobalBestStateMultiplier = globalBestStateMultiplier
 		self.__vuLocalBestStateMultiplier = localBestStateMultiplier
+
+	def setDatabase(self, dbName):
+		"""
+		create a database
+		"""
+
+		if os.path.exists(dbName):
+			return False
+
+		self.__database = sqlite3.connect(dbName)
+		cur = self.__database.cursor()
+
+		cur.execute("CREATE TABLE particle_state (iteration INT, particleId INT, state VARCHAR(2048), velocity VARCHAR(2048), fitness FLOAT)")
+
+		cur.close()
 
 
 	def populate(self, particleCount=100, distribution="uniform", initialVelocityMethod="zero"):
