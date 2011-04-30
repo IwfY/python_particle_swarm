@@ -68,8 +68,14 @@ class TestSwarm(unittest.TestCase):
 	def testDatabase(self):
 		s1 = Swarm()
 		s1.setDatabase("/tmp/psdatabasetest.db")
-
 		self.assertTrue(os.path.exists("/tmp/psdatabasetest.db"))
+
+		s1.addDimension("x", -10, 10)
+		s1.addDimension("y", -10, 10)
+		s1.setFitnessObject(Fitness1())
+		s1.populate(27)
+		
+		s1.findsolution(5)
 
 		del s1
 		os.remove("/tmp/psdatabasetest.db")

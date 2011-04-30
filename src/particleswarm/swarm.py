@@ -1,7 +1,7 @@
+from particleswarm.particle import Particle
 import math
 import os
 import sqlite3
-from particleswarm.particle import Particle
 
 class Swarm(object):
 	"""
@@ -23,9 +23,14 @@ class Swarm(object):
 		if self.__database != None:
 			self.__database.close()
 
+
 	def findsolution(self, fitnessAccepted=0.0, maxTurns=100):
 		if len(self.__particles) == 0:
 			return False
+		
+		cur = None
+		if self.__database != None:
+			cur = self.__database.cursor()
 
 		for i in range(maxTurns):
 			self.updateBestState()
@@ -41,8 +46,15 @@ class Swarm(object):
 										self.__vuGlobalBestStateMultiplier,
 										self.__vuLocalBestStateMultiplier)
 				particle.move()
+				if cur != None:
+					cur.execute("""INSERT INTO particle_state (iteration, id, state, velocity, fitness) VALUES ({}, {}, "{}", "{}", {})""".format(i, particle.getId(), particle.getState(), particle.getVelocity(), particle.fitness()))
+				
 
 		self.updateBestState()
+		
+		if cur != None:
+			self.__database.commit()
+			cur.close()
 
 
 	def setFitnessObject(self, fitnessObject):
@@ -70,7 +82,7 @@ class Swarm(object):
 		self.__database = sqlite3.connect(dbName)
 		cur = self.__database.cursor()
 
-		cur.execute("CREATE TABLE particle_state (iteration INT, particleId INT, state VARCHAR(2048), velocity VARCHAR(2048), fitness FLOAT)")
+		cur.execute("CREATE TABLE particle_state (iteration INT, id INT, state VARCHAR(4096), velocity VARCHAR(4096), fitness FLOAT)")
 
 		cur.close()
 
