@@ -1,3 +1,4 @@
 *.swp
 *.pyc
-nbproject/
+.project
+.pydevproject
