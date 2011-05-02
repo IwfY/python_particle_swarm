@@ -1,6 +1,7 @@
 from particleswarm.particle import Particle
 import math
 import os
+import random
 import sqlite3
 
 class Swarm(object):
@@ -116,13 +117,14 @@ class Swarm(object):
 			return False
 
 
-		initialStates = [{}]
+		initialStates = []
 
 		if distribution == "uniform":
 			particlesPerDimension = int(math.floor(math.pow(particleCount, 1 / self.dimensionCount())))
 			if particlesPerDimension < 1:
 				return False
 
+			initialStates.append({})
 			for dimension in self.__dimensions:
 				stepPerState = (dimension[2] - dimension[1]) / (particlesPerDimension - 1)
 				tmpStates = []
@@ -143,7 +145,12 @@ class Swarm(object):
 				initialStates.extend(tmpStates)
 				#end for dimension in self.__dimensions
 		elif distribution == "random":
-			pass
+			random.seed()
+			for i in range(particleCount):
+				tmpState = {}
+				for dimension in self.__dimensions:
+					tmpState[dimension[0]] = random.uniform(dimension[1], dimension[2])
+				initialStates.append(tmpState.copy())
 
 
 		if initialVelocityMethod == "zero":
