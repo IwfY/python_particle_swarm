@@ -28,9 +28,7 @@ class Swarm(object):
 		if len(self.__particles) == 0:
 			return False
 		
-		cur = None
-		if self.__database != None:
-			cur = self.__database.cursor()
+		self.writeParticlesToDatabase(0)
 
 		for i in range(maxTurns):
 			self.updateBestState()
@@ -46,15 +44,10 @@ class Swarm(object):
 										self.__vuGlobalBestStateMultiplier,
 										self.__vuLocalBestStateMultiplier)
 				particle.move()
-				if cur != None:
-					cur.execute("""INSERT INTO particle_state (iteration, id, state, velocity, fitness) VALUES ({}, {}, "{}", "{}", {})""".format(i, particle.getId(), particle.getState(), particle.getVelocity(), particle.fitness()))
+			self.writeParticlesToDatabase(i + 1)
 				
 
 		self.updateBestState()
-		
-		if cur != None:
-			self.__database.commit()
-			cur.close()
 
 
 	def setFitnessObject(self, fitnessObject):
@@ -83,9 +76,22 @@ class Swarm(object):
 		cur = self.__database.cursor()
 
 		cur.execute("CREATE TABLE particle_state (iteration INT, id INT, state VARCHAR(4096), velocity VARCHAR(4096), fitness FLOAT)")
-
+		self.__database.commit()
 		cur.close()
 
+	def writeParticlesToDatabase(self, turn):
+		"""
+		writes data about particles to database if available
+		"""
+		if self.__database == None:
+			return
+		
+		cur = self.__database.cursor()
+		for particle in self.__particles:
+			cur.execute("""INSERT INTO particle_state (iteration, id, state, velocity, fitness) VALUES ({}, {}, "{}", "{}", {})""".format(turn, particle.getId(), particle.getState(), particle.getVelocity(), particle.fitness()))
+
+		self.__database.commit()
+		cur.close()
 
 	def populate(self, particleCount=100, distribution="uniform", initialVelocityMethod="zero"):
 		"""
