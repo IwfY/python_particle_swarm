@@ -24,12 +24,17 @@ class Particle(object):
 		'''
 		move according to velocity and update own best state
 		'''
+		if self.__fitnessObject == None:
+			return False
+
 		for key in self.__state.keys():
 			self.__state[key] = self.__state[key] + self.__velocity[key]
 
 		#update local best fitness
 		if (self.fitness() < self.__fitnessObject.fitness(self.__bestState)):
 			self.__bestState = self.__state.copy()
+
+		return True
 
 
 	def updateVelocity(self, globalBestState, multiplier, oldVelocityMultiplier, globalBestStateMultiplier, localBestStateMultiplier):
@@ -59,6 +64,9 @@ class Particle(object):
 
 	def getBestState(self):
 		return self.__bestState
+
+	def setFitnessObject(self, fitnessObject):
+		self.__fitnessObject = fitnessObject
 
 	def getVelocity(self):
 		return self.__velocity

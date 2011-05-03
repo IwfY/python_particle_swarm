@@ -37,9 +37,6 @@ class TestSwarm(unittest.TestCase):
 
 		s1.addDimension("x", -10, 10)
 		s1.addDimension("y", -10, 10)
-		self.assertFalse(s1.populate())
-		self.assertEqual(len(s1.getParticles()), 0)
-
 		s1.setFitnessObject(Fitness1())
 		self.assertTrue(s1.populate(25))
 		self.assertEqual(len(s1.getParticles()), 25)

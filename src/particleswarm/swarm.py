@@ -29,6 +29,9 @@ class Swarm(object):
 		if len(self.__particles) == 0:
 			return False
 
+		if self.__fitnessObject == None:
+			return False
+
 		self.writeParticlesToDatabase(0)
 
 		for i in range(maxTurns):
@@ -50,9 +53,16 @@ class Swarm(object):
 
 		self.updateBestState()
 
+		return True
+
 
 	def setFitnessObject(self, fitnessObject):
+		"""
+		set fitness object and propagate to particles
+		"""
 		self.__fitnessObject = fitnessObject
+		for particle in self.__particles:
+			particle.setFitnessObject(fitnessObject)
 
 
 	def setVelocityUpdateParameters(self,
@@ -111,9 +121,6 @@ class Swarm(object):
 			return False
 
 		if particleCount < 1:
-			return False
-
-		if self.__fitnessObject == None:
 			return False
 
 
