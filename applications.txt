@@ -1,0 +1,10 @@
+Applications:
+
+1. Train a neuronal network
+
+2. path finding
+- have a set of connected points inbetween a start and an end point
+- fitness is the lenght of the path and the ability to walk it
+
+3. arrange artifacts in a weighted diagram
+- so nodes and edges don't overlap and nodes with a strong connection are closer to each other
