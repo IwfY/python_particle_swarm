@@ -1,0 +1,3 @@
+TODO:
+
+1. concurrency in findsolution and population
