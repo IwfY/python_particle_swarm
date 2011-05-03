@@ -52,6 +52,14 @@ class TestSwarm(unittest.TestCase):
 		self.assertTrue(s1.populate(25, "random"))
 		self.assertEqual(len(s1.getParticles()), 25)
 
+	def testRandomVelocityPopulation(self):
+		s1 = Swarm()
+		s1.setFitnessObject(Fitness1())
+		s1.addDimension("x", 20, 40)
+		s1.addDimension("y", -10, 10)
+		self.assertTrue(s1.populate(25, initialVelocityMethod="random"))
+		self.assertEqual(len(s1.getParticles()), 25)
+
 	def testFindSolution(self):
 		s1 = Swarm()
 		s1.addDimension("x", -10, 10)
@@ -82,7 +90,7 @@ class TestSwarm(unittest.TestCase):
 		s1.addDimension("y", -10, 10)
 		s1.setFitnessObject(Fitness1())
 		s1.populate(27)
-		
+
 		s1.findsolution(5)
 
 		del s1

@@ -28,7 +28,7 @@ class Swarm(object):
 	def findsolution(self, fitnessAccepted=0.0, maxTurns=100):
 		if len(self.__particles) == 0:
 			return False
-		
+
 		self.writeParticlesToDatabase(0)
 
 		for i in range(maxTurns):
@@ -46,7 +46,7 @@ class Swarm(object):
 										self.__vuLocalBestStateMultiplier)
 				particle.move()
 			self.writeParticlesToDatabase(i + 1)
-				
+
 
 		self.updateBestState()
 
@@ -86,7 +86,7 @@ class Swarm(object):
 		"""
 		if self.__database == None:
 			return
-		
+
 		cur = self.__database.cursor()
 		for particle in self.__particles:
 			cur.execute("""INSERT INTO particle_state (iteration, id, state, velocity, fitness) VALUES ({}, {}, "{}", "{}", {})""".format(turn, particle.getId(), particle.getState(), particle.getVelocity(), particle.fitness()))
@@ -161,7 +161,13 @@ class Swarm(object):
 			for state in initialStates:
 				self.__particles.append(Particle(state, velocity.copy(), self.__fitnessObject))
 		elif initialVelocityMethod == "random":
-			pass
+			random.seed()
+
+			for state in initialStates:
+				velocity = {}
+				for dimension in self.__dimensions:
+					velocity[dimension[0]] = random.uniform(-(dimension[2] - dimension[1]) / 2, (dimension[2] - dimension[1]) / 2)
+				self.__particles.append(Particle(state, velocity.copy(), self.__fitnessObject))
 
 		return True
 
