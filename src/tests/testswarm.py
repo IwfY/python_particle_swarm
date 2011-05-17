@@ -5,11 +5,11 @@ from particleswarm.swarm import Swarm
 from particleswarm.fitness import Fitness
 
 class Fitness1(Fitness):
-	def fitness(self, state):
+	def calculateFitness(self, state):
 		return abs(pow(state["x"], 3) + 0.5 * state["y"] - 20.5)
 
 class Fitness2(Fitness):
-	def fitness(self, state):
+	def calculateFitness(self, state):
 		return abs(pow(state["x"], 3) + 0.5 * state["y"] - 20.5 + math.log(abs(state["z"] + 1)))
 
 

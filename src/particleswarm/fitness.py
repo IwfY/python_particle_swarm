@@ -1,7 +1,8 @@
 class Fitness(object):
 
-	def __init__(self):
+	def __init__(self, buffering=True):
 		self.__buffer = {}
+		self.__buffering = buffering
 
 	@staticmethod
 	def stateToTuple(state):
@@ -19,6 +20,13 @@ class Fitness(object):
 			out += (key, state[key])
 
 		return out
+
+
+	def setBuffering(self, buffering):
+		'''
+		turn buffering on or of
+		'''
+		self.__buffering = buffering
 
 
 	def __getBufferedFitness(self, state):
@@ -39,6 +47,23 @@ class Fitness(object):
 
 	def fitness(self, state):
 		'''
-		returns the fitness to a given state
+		get the fitness to a given state using the buffer
+		'''
+		if self.__buffering == True:
+			buffered = self.__getBufferedFitness(state)
+			if self.__getBufferedFitness(state) != None:
+				return buffered
+
+		fitness = self.calculateFitness(state)
+
+		if self.__buffering == True:
+			self.__addFitnessToBuffer(state, fitness)
+
+		return fitness
+
+
+	def calculateFitness(self, state):
+		'''
+		calculate the fitness to a given state
 		'''
 		raise NotImplemented("Please Implement this method.")

@@ -3,7 +3,7 @@ from particleswarm.particle import Particle
 from particleswarm.fitness import Fitness
 
 class Fitness1(Fitness):
-	def fitness(self, state):
+	def calculateFitness(self, state):
 		return abs(state["x"] + state["y"] - 5)
 		
 
@@ -21,7 +21,8 @@ class TestNeuron(unittest.TestCase):
 		self.assertEqual(p1.getState()["y"], -1.0)
 
 	def testBestState(self):
-		p1 = Particle({"x": 0.0, "y": 0.0}, {"x": 0.0, "y": 0.0}, Fitness1())
+		f = Fitness1()
+		p1 = Particle({"x": 0.0, "y": 0.0}, {"x": 0.0, "y": 0.0}, f)
 		self.assertEqual(p1.fitness(), 5.0)
 		self.assertEqual(p1.getBestState()["x"], 0.0)
 		self.assertEqual(p1.getBestState()["y"], 0.0)
