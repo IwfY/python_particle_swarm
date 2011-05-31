@@ -25,7 +25,7 @@ class Swarm(object):
 			self.__database.close()
 
 
-	def findsolution(self, fitnessAccepted=0.0, maxTurns=100):
+	def findSolution(self, fitnessAccepted=0.0, maxTurns=100):
 		if len(self.__particles) == 0:
 			return False
 
@@ -35,7 +35,7 @@ class Swarm(object):
 		self.writeParticlesToDatabase(0)
 
 		for i in range(maxTurns):
-			self.updateBestState()
+			self.__updateBestState()
 			#print(i - 1,"current:" , self.getCurrentBestParticle().getId(), self.getCurrentBestParticle().fitness(), "global:", self.__bestState, self.__fitnessObject.fitness(self.__bestState))
 
 			if self.__fitnessObject.fitness(self.__bestState) < fitnessAccepted:
@@ -51,7 +51,7 @@ class Swarm(object):
 			self.writeParticlesToDatabase(i + 1)
 
 
-		self.updateBestState()
+		self.__updateBestState()
 
 		return True
 
@@ -221,7 +221,7 @@ class Swarm(object):
 
 		return bestParticle.fitness()
 
-	def updateBestState(self):
+	def __updateBestState(self):
 		if self.__bestState == None:
 			self.__bestState = self.getCurrentBestParticle().getState()
 		elif self.getCurrentBestParticleFitness() < self.__fitnessObject.fitness(self.__bestState):

@@ -64,7 +64,7 @@ class TestSwarm(unittest.TestCase):
 		s1.setFitnessObject(Fitness1())
 		s1.populate(27)
 
-		s1.findsolution(0.00001, 100)
+		s1.findSolution(0.00001, 100)
 		self.assertLessEqual(Fitness1().fitness(s1.getBestState()), 0.00001)
 
 	def testFindSolution2(self):
@@ -75,7 +75,7 @@ class TestSwarm(unittest.TestCase):
 		s1.setFitnessObject(Fitness2())
 		s1.populate(27)
 
-		s1.findsolution(0.00001, 100)
+		s1.findSolution(0.00001, 100)
 		self.assertLessEqual(Fitness2().fitness(s1.getBestState()), 0.00001)
 
 	def testDatabase(self):
@@ -88,7 +88,7 @@ class TestSwarm(unittest.TestCase):
 		s1.setFitnessObject(Fitness1())
 		s1.populate(27)
 
-		s1.findsolution(5)
+		s1.findSolution(5)
 
 		del s1
 		os.remove("/tmp/psdatabasetest.db")
