@@ -92,3 +92,10 @@ class TestSwarm(unittest.TestCase):
 
 		del s1
 		os.remove("/tmp/psdatabasetest.db")
+
+	def testGetBest(self):
+		s1 = Swarm()
+		self.assertEqual(s1.getCurrentBestParticle(), None)
+		self.assertEqual(s1.getCurrentBestParticleFitness(), None)
+		self.assertEqual(s1._Swarm__updateBestState(), None)
+		self.assertEqual(s1.getBestFitness(), None)

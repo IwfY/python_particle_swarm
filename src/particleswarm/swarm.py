@@ -20,6 +20,7 @@ class Swarm(object):
 		self.__vuLocalBestStateMultiplier = 0.3
 		self.__database = None
 
+
 	def __del__(self):
 		if self.__database != None:
 			self.__database.close()
@@ -35,25 +36,29 @@ class Swarm(object):
 		self.writeParticlesToDatabase(0)
 
 		for i in range(maxTurns):
-			self.__updateBestState()
 			#print(i - 1,"current:" , self.getCurrentBestParticle().getId(), self.getCurrentBestParticle().fitness(), "global:", self.__bestState, self.__fitnessObject.fitness(self.__bestState))
-
 			if self.__fitnessObject.fitness(self.__bestState) < fitnessAccepted:
 				break
-			for particle in self.__particles:
-				#print("p" + str(particle.getId()), particle.getState(), particle.getVelocity(), particle.getBestState(), particle.fitness(), sep="\t")
-				particle.updateVelocity(self.__bestState,
-										self.__vuMultiplier,
-										self.__vuOldVelocityMultiplier,
-										self.__vuGlobalBestStateMultiplier,
-										self.__vuLocalBestStateMultiplier)
-				particle.move()
+			self.step()
 			self.writeParticlesToDatabase(i + 1)
-
 
 		self.__updateBestState()
 
 		return True
+
+
+	def step(self):
+		"""
+		update velocity of all particles and move them
+		"""
+		for particle in self.__particles:
+			particle.updateVelocity(self.__bestState,
+									self.__vuMultiplier,
+									self.__vuOldVelocityMultiplier,
+									self.__vuGlobalBestStateMultiplier,
+									self.__vuLocalBestStateMultiplier)
+			particle.move()
+		self.__updateBestState()
 
 
 	def setFitnessObject(self, fitnessObject):
@@ -74,6 +79,7 @@ class Swarm(object):
 		self.__vuOldVelocityMultiplier = oldVelocityMultiplier
 		self.__vuGlobalBestStateMultiplier = globalBestStateMultiplier
 		self.__vuLocalBestStateMultiplier = localBestStateMultiplier
+
 
 	def setDatabase(self, dbName):
 		"""
@@ -176,6 +182,7 @@ class Swarm(object):
 					velocity[dimension[0]] = random.uniform(-(dimension[2] - dimension[1]) / 2, (dimension[2] - dimension[1]) / 2)
 				self.__particles.append(Particle(state, velocity.copy(), self.__fitnessObject))
 
+		self.__updateBestState()
 		return True
 
 
@@ -204,6 +211,9 @@ class Swarm(object):
 		return self.__particles
 
 	def getCurrentBestParticle(self):
+		if len(self.__particles) == 0:
+			return None
+
 		bestParticle = self.__particles[0]
 		lowestFitness = bestParticle.fitness()
 
@@ -218,10 +228,15 @@ class Swarm(object):
 
 	def getCurrentBestParticleFitness(self):
 		bestParticle = self.getCurrentBestParticle()
+		if bestParticle == None:
+			return None
 
 		return bestParticle.fitness()
 
 	def __updateBestState(self):
+		if len(self.__particles) == 0:
+			return None
+
 		if self.__bestState == None:
 			self.__bestState = self.getCurrentBestParticle().getState()
 		elif self.getCurrentBestParticleFitness() < self.__fitnessObject.fitness(self.__bestState):
@@ -232,6 +247,9 @@ class Swarm(object):
 		"""
 		get the fitness of the historical best known state
 		"""
+		if self.__fitnessObject == None or self.__bestState == None:
+			return None
+
 		return self.__fitnessObject.fitness(self.__bestState)
 
 	def getBestState(self):
