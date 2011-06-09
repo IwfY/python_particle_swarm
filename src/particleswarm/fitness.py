@@ -1,6 +1,6 @@
 class Fitness(object):
 
-	def __init__(self, buffering=True):
+	def __init__(self, buffering=False):
 		self.__buffer = {}
 		self.__buffering = buffering
 
