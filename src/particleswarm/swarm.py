@@ -92,24 +92,55 @@ class Swarm(object):
 		self.__database = sqlite3.connect(dbName)
 		cur = self.__database.cursor()
 
-		cur.execute("CREATE TABLE particle_state (iteration INT, id INT, state VARCHAR(4096), velocity VARCHAR(4096), fitness FLOAT)")
+		cur.execute("""CREATE TABLE particle_state
+					(iteration INT, id INT, state VARCHAR(4096),
+					velocity VARCHAR(4096), fitness FLOAT)""")
 		self.__database.commit()
 		cur.close()
-	
-	
+
+
 	def loadParticlesFromDatabase(self, database, turn=-1):
 		"""Delete all particles, populate swarm from particle states in
 		a given turn from the database
-		
+
 		Attention: the output database is not set to the given database
-		
+
 		@param database the path to the database
 		@param turn the turn from which the particle data should be
 		choosen, if a negative value is given count backwards (e.g.
 		turn = -2 means the second last turn)
 		"""
-		pass
-	
+		self.__particles = []
+
+		try:
+			inputDatabase = sqlite3.connect(database)
+			cur = inputDatabase.cursor()
+		except Exception:
+			pass
+
+		if turn < 0:
+			cur.execute("SELECT MAX(iteration) FROM particle_state")
+			queryParameters = (int(cur.fetchone()[0]) + turn + 1,)
+		else:
+			queryParameters = (turn,)
+
+		cur.execute("""SELECT state, velocity
+					   FROM particle_state
+					   WHERE iteration = ?
+					   ORDER BY id""",
+					queryParameters)
+
+		#result = cur.fetchall()
+
+		for particle in cur:
+			self.__particles.append(Particle(eval(particle[0]),
+											 eval(particle[1]),
+											 self.__fitnessObject))
+
+		inputDatabase.close()
+
+		self.__updateBestState()
+
 
 	def writeParticlesToDatabase(self, turn):
 		"""
@@ -120,7 +151,7 @@ class Swarm(object):
 
 		cur = self.__database.cursor()
 		for particle in self.__particles:
-			cur.execute("""INSERT INTO particle_state (iteration, id, state, velocity, fitness) VALUES ({}, {}, "{}", "{}", {})""".format(turn, particle.getId(), particle.getState(), particle.getVelocity(), particle.fitness()))
+			cur.execute("""INSERT INTO particle_state (iteration, id, state, velocity, fitness) VALUES ({}, {}, "{}", "{}", {})""".format(turn, particle.getId(), str(particle.getState()), str(particle.getVelocity()), particle.fitness()))
 
 		self.__database.commit()
 		cur.close()
@@ -226,7 +257,7 @@ class Swarm(object):
 		return self.__particles
 
 	def getCurrentBestParticle(self):
-		if len(self.__particles) == 0:
+		if not self.__particles:
 			return None
 
 		bestParticle = self.__particles[0]
@@ -249,7 +280,7 @@ class Swarm(object):
 		return bestParticle.fitness()
 
 	def __updateBestState(self):
-		if len(self.__particles) == 0:
+		if not self.__particles:
 			return None
 
 		if self.__bestState == None:
