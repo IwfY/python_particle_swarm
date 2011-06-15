@@ -95,6 +95,21 @@ class Swarm(object):
 		cur.execute("CREATE TABLE particle_state (iteration INT, id INT, state VARCHAR(4096), velocity VARCHAR(4096), fitness FLOAT)")
 		self.__database.commit()
 		cur.close()
+	
+	
+	def loadParticlesFromDatabase(self, database, turn=0):
+		"""Delete all particles, populate swarm from particle states in
+		a given turn from the database
+		
+		Attention: the output database is not set to the given database
+		
+		@param database the path to the database
+		@param turn the turn from which the particle data should be
+		choosen, if a negative value is given count backwards (e.g.
+		turn = -2 means the second last turn)
+		"""
+		pass
+	
 
 	def writeParticlesToDatabase(self, turn):
 		"""
