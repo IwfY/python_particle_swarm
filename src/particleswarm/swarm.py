@@ -97,7 +97,7 @@ class Swarm(object):
 		cur.close()
 	
 	
-	def loadParticlesFromDatabase(self, database, turn=0):
+	def loadParticlesFromDatabase(self, database, turn=-1):
 		"""Delete all particles, populate swarm from particle states in
 		a given turn from the database
 		
