@@ -1,8 +1,34 @@
 from particleswarm.particle import Particle
 import math
+import multiprocessing
 import os
 import random
 import sqlite3
+
+
+# code to make methods able to be used by pickle
+# see http://bytes.com/topic/python/answers/
+#	         552476-why-cant-you-pickle-instancemethods
+def _pickle_method(method):
+	func_name = method.__func__.__name__
+	obj = method.__self__
+	cls = method.__self__.__class__
+	return _unpickle_method, (func_name, obj, cls)
+
+def _unpickle_method(func_name, obj, cls):
+	for cls in cls.mro():
+		try:
+			func = cls.__dict__[func_name]
+		except KeyError:
+			pass
+		else:
+			break
+	return func.__get__(obj, cls)
+
+import copyreg
+import types
+copyreg.pickle(types.MethodType, _pickle_method, _unpickle_method)
+
 
 class Swarm(object):
 	"""
@@ -19,6 +45,7 @@ class Swarm(object):
 		self.__vuGlobalBestStateMultiplier = 0.3
 		self.__vuLocalBestStateMultiplier = 0.3
 		self.__database = None
+		self.__processes = 1		# number of processes
 
 
 	def __del__(self):
@@ -253,23 +280,44 @@ class Swarm(object):
 		return self.__dimensions
 
 
+	def getNumberOfProcesses(self):
+		return self.__processes
+
+	def setNumberOfProcesses(self, processes):
+		assert(processes > 0)
+
+		self.__processes = processes
+
+
 	def getParticles(self):
 		return self.__particles
+
 
 	def getCurrentBestParticle(self):
 		if not self.__particles:
 			return None
 
-		bestParticle = self.__particles[0]
-		lowestFitness = bestParticle.fitness()
+		if self.__processes > 1:
+			pool = multiprocessing.Pool(self.__processes)
+			stateList = []
+			for particle in self.__particles:
+				stateList.append(particle.getState())
+			fitnessList = pool.map(self.__fitnessObject.fitness, stateList)
+			minFitness = min(fitnessList)
+			listIndexOfMin = fitnessList.index(minFitness)
 
-		for particle in self.__particles:
-			currentFitness = particle.fitness()
-			if currentFitness < lowestFitness:
-				bestParticle = particle
-				lowestFitness = currentFitness
+			return self.__particles[listIndexOfMin]
+		else:
+			bestParticle = self.__particles[0]
+			lowestFitness = bestParticle.fitness()
 
-		return bestParticle
+			for particle in self.__particles:
+				currentFitness = particle.fitness()
+				if currentFitness < lowestFitness:
+					bestParticle = particle
+					lowestFitness = currentFitness
+
+			return bestParticle
 
 
 	def getCurrentBestParticleFitness(self):

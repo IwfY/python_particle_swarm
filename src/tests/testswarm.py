@@ -166,3 +166,14 @@ class TestSwarm(unittest.TestCase):
 		self.assertEqual(s1.getCurrentBestParticleFitness(), None)
 		self.assertEqual(s1._Swarm__updateBestState(), None)
 		self.assertEqual(s1.getBestFitness(), None)
+
+
+	def testMultiProcessing(self):
+		s1 = Swarm()
+		s1.setNumberOfProcesses(2)
+		s1.addDimension("x", -10, 10)
+		s1.addDimension("y", -10, 10)
+		s1.setFitnessObject(Fitness1())
+		s1.populate(10)
+		s1.getCurrentBestParticle()
+		self.assertEqual(s1.getCurrentBestParticleFitness(), 15.5)
