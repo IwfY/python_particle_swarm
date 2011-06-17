@@ -177,3 +177,5 @@ class TestSwarm(unittest.TestCase):
 		s1.populate(10)
 		s1.getCurrentBestParticle()
 		self.assertEqual(s1.getCurrentBestParticleFitness(), 15.5)
+		s1.findSolution(0.00001, 100)
+		self.assertLessEqual(Fitness1().fitness(s1.getBestState()), 0.00001)
