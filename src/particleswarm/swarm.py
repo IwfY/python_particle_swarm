@@ -46,6 +46,7 @@ class Swarm(object):
 		self.__vuLocalBestStateMultiplier = 0.3
 		self.__database = None
 		self.__processes = 1		# number of processes
+		self.__pool = None
 
 
 	def __del__(self):
@@ -285,8 +286,12 @@ class Swarm(object):
 
 	def setNumberOfProcesses(self, processes):
 		assert(processes > 0)
-
 		self.__processes = processes
+
+		if processes > 1:
+			self.__pool = multiprocessing.Pool(processes)
+		else:
+			self.__pool = None
 
 
 	def getParticles(self):
@@ -297,12 +302,11 @@ class Swarm(object):
 		if not self.__particles:
 			return None
 
-		if self.__processes > 1:
-			pool = multiprocessing.Pool(self.__processes)
+		if self.__pool:
 			stateList = []
 			for particle in self.__particles:
 				stateList.append(particle.getState())
-			fitnessList = pool.map(self.__fitnessObject.fitness, stateList)
+			fitnessList = self.__pool.map(self.__fitnessObject.fitness, stateList)
 			minFitness = min(fitnessList)
 			listIndexOfMin = fitnessList.index(minFitness)
 
