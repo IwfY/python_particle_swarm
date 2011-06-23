@@ -94,6 +94,39 @@ class TestSwarm(unittest.TestCase):
 		del s1
 		os.remove("/tmp/psdatabasetest.db")
 
+
+	def testContinueDatabase(self):
+		s1 = Swarm()
+		s1.setDatabase("/tmp/psdatabasetest.db")
+		self.assertTrue(os.path.exists("/tmp/psdatabasetest.db"))
+
+		s1.addDimension("x", -10, 10)
+		s1.addDimension("y", -10, 10)
+		s1.setFitnessObject(Fitness1())
+		s1.populate(10)
+
+		s1.findSolution(5)
+
+		del s1
+		
+		s3 = Swarm()
+		self.assertRaises(ValueError, s3.setDatabase, "/tmp/psdatabasetest.db")
+		
+		s2 = Swarm()
+		s2.setDatabase("/tmp/psdatabasetest.db", True)
+		
+		s2.addDimension("x", -10, 10)
+		s2.addDimension("y", -10, 10)
+		s2.setFitnessObject(Fitness1())
+		s2.populate(10)
+
+		s2.findSolution(5)
+
+		del s2
+		
+		os.remove("/tmp/psdatabasetest.db")
+
+
 	def testLoadFromDatabase(self):
 		s1 = Swarm()
 		s1.setDatabase("/tmp/psdatabasetest.db")

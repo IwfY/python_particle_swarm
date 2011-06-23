@@ -50,7 +50,7 @@ class Swarm(object):
 
 
 	def __del__(self):
-		if self.__database != None:
+		if self.__database:
 			self.__database.close()
 
 
@@ -58,13 +58,12 @@ class Swarm(object):
 		if len(self.__particles) == 0:
 			return False
 
-		if self.__fitnessObject == None:
+		if not self.__fitnessObject:
 			return False
 
 		self.writeParticlesToDatabase(0)
 
 		for i in range(maxTurns):
-			#print(i - 1,"current:" , self.getCurrentBestParticle().getId(), self.getCurrentBestParticle().fitness(), "global:", self.__bestState, self.__fitnessObject.fitness(self.__bestState))
 			if self.__fitnessObject.fitness(self.__bestState) < fitnessAccepted:
 				break
 			self.step()
@@ -109,18 +108,23 @@ class Swarm(object):
 		self.__vuLocalBestStateMultiplier = localBestStateMultiplier
 
 
-	def setDatabase(self, dbName):
+	def setDatabase(self, dbName, continueWrite=False):
 		"""
 		create a database
+		
+		@param dbName string path to the database
+		@param continueWrite boolean when true continue writing to the
+			database if it already exists, when false throw a ValueError
+			exception when attempting to overwrite an existing file
 		"""
 
-		if os.path.exists(dbName):
-			return False
+		if os.path.exists(dbName) and not continueWrite:
+			raise ValueError()
 
 		self.__database = sqlite3.connect(dbName)
 		cur = self.__database.cursor()
 
-		cur.execute("""CREATE TABLE particle_state
+		cur.execute("""CREATE TABLE IF NOT EXISTS particle_state
 					(iteration INT, id INT, state VARCHAR(4096),
 					velocity VARCHAR(4096), fitness FLOAT)""")
 		self.__database.commit()
