@@ -340,9 +340,9 @@ class Swarm(object):
 			return None
 
 		if self.__bestState == None:
-			self.__bestState = self.getCurrentBestParticle().getState()
+			self.__bestState = self.getCurrentBestParticle().getState().copy()
 		elif self.getCurrentBestParticleFitness() < self.__fitnessObject.fitness(self.__bestState):
-			self.__bestState = self.getCurrentBestParticle().getState()
+			self.__bestState = self.getCurrentBestParticle().getState().copy()
 
 
 	def getBestFitness(self):
