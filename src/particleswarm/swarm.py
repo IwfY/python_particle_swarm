@@ -88,6 +88,22 @@ class Swarm(object):
 		self.__updateBestState()
 
 
+	def resetSmallVelocities(self, maxVelocityLength):
+		maxVelocityLengthSqr = maxVelocityLength * maxVelocityLength
+
+		for particle in self.__particles:
+			if particle.getSqrVelocityVectorLength() < maxVelocityLengthSqr:
+				newVelocity = {}
+				for dimension in self.__dimensions:
+					newVelocity[dimension[0]] = random.uniform(-(dimension[2] - dimension[1]) / 2, (dimension[2] - dimension[1]) / 2)
+				particle.setVelocity(newVelocity)
+
+				newState = {}
+				for dimension in self.__dimensions:
+					newState[dimension[0]] = random.uniform(dimension[1], dimension[2])
+				particle.setState(newState)
+
+
 	def setFitnessObject(self, fitnessObject):
 		"""
 		set fitness object and propagate to particles
@@ -111,7 +127,7 @@ class Swarm(object):
 	def setDatabase(self, dbName, continueWrite=False):
 		"""
 		create a database
-		
+
 		@param dbName string path to the database
 		@param continueWrite boolean when true continue writing to the
 			database if it already exists, when false throw a ValueError

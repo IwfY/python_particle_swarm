@@ -56,11 +56,26 @@ class Particle(object):
 
 			self.__velocity[key] = multiplier * (oldVelocityMultiplier * self.__velocity[key] + deltaVelocityGlobalBest[key] + deltaVelocityLocalBest[key])
 
+
+	def setVelocity(self, velocity):
+		self.__velocity = velocity
+
+
+	def getSqrVelocityVectorLength(self):
+		out = 0
+		for key in self.__velocity.keys():
+			out += self.__velocity[key] * self.__velocity[key]
+
+		return out
+
 	def getId(self):
 		return self.__id
 
 	def getState(self):
 		return self.__state
+
+	def setState(self, state):
+		self.__state = state
 
 	def getBestState(self):
 		return self.__bestState
