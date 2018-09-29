@@ -123,6 +123,11 @@ class Swarm(object):
 		self.__vuGlobalBestStateMultiplier = globalBestStateMultiplier
 		self.__vuLocalBestStateMultiplier = localBestStateMultiplier
 
+	def getVelocityUpdateParameters(self):
+		return {'__vuMultiplier': self.__vuMultiplier,
+			'__vuOldVelocityMultiplier': self.__vuOldVelocityMultiplier,
+			'__vuGlobalBestStateMultiplier': self.__vuGlobalBestStateMultiplier,
+			'__vuLocalBestStateMultiplier': self.__vuLocalBestStateMultiplier}
 
 	def setDatabase(self, dbName, continueWrite=False):
 		"""
@@ -204,6 +209,36 @@ class Swarm(object):
 		self.__database.commit()
 		cur.close()
 
+	def writeParticlesCSVHeader(self):
+		"""
+		writes data about particles to file
+		"""
+		with open('swarm_run.csv', 'w') as f:
+			particle = self.__particles[0]
+			line = ""
+			line += "id,iteration,particle_id,fitness,velocity_length,is_historic_best,is_current_best,"
+			state = particle.getState()
+			for key in state:
+				line += "state.{},velocity.{},".format(key, key)
+			f.write(line + '\n')
+
+	def writeParticlesToCSV(self, turn):
+		"""
+		writes data about particles to file
+		"""
+		currentBestPartice = self.getCurrentBestParticle()
+		historicBestFitness = self.getBestFitness()
+		with open('swarm_run.csv', 'a') as f:
+			for particle in self.__particles:
+				line = ""
+				line += "{},{},{},{},{},".format(turn * (len(self.__particles) + 1)  + particle.getId(), turn, particle.getId(), particle.fitness(), math.sqrt(particle.getSqrVelocityVectorLength()))
+				line += "{},{},".format(int(particle.fitness() == historicBestFitness), int(particle == currentBestPartice))
+				state = particle.getState()
+				velocity = particle.getVelocity()
+				for key in state:
+					line += "{},{},".format(state[key], velocity[key])
+				f.write(line + '\n')
+
 	def populate(self, particleCount=100, distribution="uniform", initialVelocityMethod="zero"):
 		"""
 		initialize particles that are spread over the problem space
@@ -211,6 +246,7 @@ class Swarm(object):
 		valid distribution mathods are:
 			uniform
 			random
+			uniform_fill_random
 
 		valid mathods to initialize the velocity of a particle
 			zero		velocity is zero
@@ -226,7 +262,7 @@ class Swarm(object):
 
 		initialStates = []
 
-		if distribution == "uniform":
+		if distribution == "uniform" or distribution == "uniform_fill_random":
 			particlesPerDimension = int(math.floor(math.pow(particleCount, 1 / self.dimensionCount())))
 			if particlesPerDimension < 1:
 				return False
@@ -254,6 +290,13 @@ class Swarm(object):
 		elif distribution == "random":
 			random.seed()
 			for i in range(particleCount):
+				tmpState = {}
+				for dimension in self.__dimensions:
+					tmpState[dimension[0]] = random.uniform(dimension[1], dimension[2])
+				initialStates.append(tmpState.copy())
+
+		if distribution == "uniform_fill_random":
+			for i in range(len(initialStates), particleCount):
 				tmpState = {}
 				for dimension in self.__dimensions:
 					tmpState[dimension[0]] = random.uniform(dimension[1], dimension[2])
