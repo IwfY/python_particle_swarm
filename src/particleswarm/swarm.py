@@ -40,13 +40,10 @@ class Swarm(object):
 		self.__dimensions = []
 		self.__bestState = None
 		self.__fitnessObject = None
-		self.__vuMultiplier = 0.5
-		self.__vuOldVelocityMultiplier = 0.3
-		self.__vuGlobalBestStateMultiplier = 0.3
-		self.__vuLocalBestStateMultiplier = 0.3
 		self.__database = None
 		self.__processes = 1		# number of processes
 		self.__pool = None
+		self.__iteration = 0
 
 
 	def __del__(self):
@@ -79,13 +76,10 @@ class Swarm(object):
 		update velocity of all particles and move them
 		"""
 		for particle in self.__particles:
-			particle.updateVelocity(self.__bestState,
-									self.__vuMultiplier,
-									self.__vuOldVelocityMultiplier,
-									self.__vuGlobalBestStateMultiplier,
-									self.__vuLocalBestStateMultiplier)
+			particle.updateVelocity()
 			particle.move()
 		self.__updateBestState()
+		self.__iteration += 1
 
 
 	def resetSmallVelocities(self, maxVelocityLength):
@@ -113,21 +107,13 @@ class Swarm(object):
 			particle.setFitnessObject(fitnessObject)
 
 
-	def setVelocityUpdateParameters(self,
-									multiplier,
-									oldVelocityMultiplier,
-									globalBestStateMultiplier,
-									localBestStateMultiplier):
-		self.__vuMultiplier = multiplier
-		self.__vuOldVelocityMultiplier = oldVelocityMultiplier
-		self.__vuGlobalBestStateMultiplier = globalBestStateMultiplier
-		self.__vuLocalBestStateMultiplier = localBestStateMultiplier
-
-	def getVelocityUpdateParameters(self):
-		return {'__vuMultiplier': self.__vuMultiplier,
-			'__vuOldVelocityMultiplier': self.__vuOldVelocityMultiplier,
-			'__vuGlobalBestStateMultiplier': self.__vuGlobalBestStateMultiplier,
-			'__vuLocalBestStateMultiplier': self.__vuLocalBestStateMultiplier}
+	def setParticleVelcityUpdateStrategyObject(self, particleVelocityUpdateStrategy):
+		"""
+		set fitness object and propagate to particles
+		"""
+		self.__particleVelocityUpdateStrategy = particleVelocityUpdateStrategy
+		for particle in self.__particles:
+			particle.setVelcityUpdateStrategyObject(particleVelocityUpdateStrategy)
 
 	def setDatabase(self, dbName, continueWrite=False):
 		"""
@@ -317,7 +303,7 @@ class Swarm(object):
 				velocity = {}
 				for dimension in self.__dimensions:
 					velocity[dimension[0]] = random.uniform(-(dimension[2] - dimension[1]) / 2, (dimension[2] - dimension[1]) / 2)
-				self.__particles.append(Particle(state, velocity.copy(), self.__fitnessObject))
+				self.__particles.append(Particle(state, velocity.copy(), self.__fitnessObject, self.__particleVelocityUpdateStrategy))
 
 		self.__updateBestState()
 		return True
@@ -415,3 +401,6 @@ class Swarm(object):
 
 	def getBestState(self):
 		return self.__bestState
+
+	def getIteration(self):
+		return self.__iteration

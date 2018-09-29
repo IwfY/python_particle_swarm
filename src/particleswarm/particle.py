@@ -5,13 +5,14 @@ class Particle(object):
 
 	__lastId = 1
 
-	def __init__(self, state, velocity, fitnessObject):
+	def __init__(self, state, velocity, fitnessObject, particleVelocityUpdateStrategy):
 		self.__id = Particle.__lastId
 		Particle.__lastId += 1
 		self.__state = state
 		self.__bestState = state.copy()
 		self.__velocity = velocity
 		self.__fitnessObject = fitnessObject
+		self.__particleVelocityUpdateStrategy = particleVelocityUpdateStrategy
 
 
 	def fitness(self):
@@ -19,6 +20,12 @@ class Particle(object):
 		returns the fitness of the particle
 		'''
 		return self.__fitnessObject.fitness(self.__state)
+
+	def setVelcityUpdateStrategyObject(self, particleVelocityUpdateStrategy):
+		"""
+		set fitness object and propagate to particles
+		"""
+		self.__particleVelocityUpdateStrategy = particleVelocityUpdateStrategy
 
 	def move(self):
 		'''
@@ -37,24 +44,11 @@ class Particle(object):
 		return True
 
 
-	def updateVelocity(self, globalBestState, multiplier, oldVelocityMultiplier, globalBestStateMultiplier, localBestStateMultiplier):
+	def updateVelocity(self):
 		'''
 		recalculate the velocity
-
-		@param globalBestState Dictionary holding the global best state
-		@param multiplier multiplier for the new velocity
-		@param oldVelocityMultiplier multiplier for the influence of the old velocity
-		@param globalBestStateMultiplier multiplier for the influence of the global best to the velocity
-		@param localBestStateMultiplier multiplier for the influence of the local best to the velocity
 		'''
-
-		deltaVelocityGlobalBest = {}
-		deltaVelocityLocalBest = {}
-		for key in self.__state.keys():
-			deltaVelocityGlobalBest[key] =  globalBestStateMultiplier * (globalBestState[key] - self.__state[key])
-			deltaVelocityLocalBest[key] = localBestStateMultiplier * (self.__bestState[key] - self.__state[key])
-
-			self.__velocity[key] = multiplier * (oldVelocityMultiplier * self.__velocity[key] + deltaVelocityGlobalBest[key] + deltaVelocityLocalBest[key])
+		self.__velocity = self.__particleVelocityUpdateStrategy.getNewVelocity(self)
 
 
 	def setVelocity(self, velocity):
