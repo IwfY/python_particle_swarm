@@ -1,8 +1,11 @@
 from particleswarm.particle import Particle
+from datetime import datetime
+import json
 import math
 import multiprocessing
 import os
 import random
+import requests
 import sqlite3
 
 
@@ -44,6 +47,7 @@ class Swarm(object):
 		self.__processes = 1		# number of processes
 		self.__pool = None
 		self.__iteration = 0
+		self.__runName = datetime.now().isoformat()
 
 
 	def __del__(self):
@@ -194,6 +198,31 @@ class Swarm(object):
 
 		self.__database.commit()
 		cur.close()
+
+	def writeParticlesToElasticSearch(self, serverUrl, indexName, turn):
+		"""
+		writes data about particles to Elastic Search
+		"""
+		url = 'http://{}/{}/_doc'.format(serverUrl, indexName)
+		currentBestPartice = self.getCurrentBestParticle()
+		historicBestFitness = self.getBestFitness()
+
+		for particle in self.__particles:
+			out = {}
+			out['runName'] = self.__runName
+			out['particle'] = particle.getId()
+			out['turn'] = turn
+			out['fitness'] = particle.fitness()
+			out['fitnessFunction'] = self.__fitnessObject.getName()
+			out['velocityLength'] = math.sqrt(particle.getSqrVelocityVectorLength())
+			out['isCurrentBest'] = int(particle == currentBestPartice)
+			out['isHistoricBest'] = int(out['fitness'] == historicBestFitness)
+			for key, value in particle.getState().items():
+				out['state.' + key] = value
+			for key, value in particle.getVelocity().items():
+				out['velocity.' + key] = value
+			r = requests.post(url, json=out)
+
 
 	def writeParticlesCSVHeader(self):
 		"""
