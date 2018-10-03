@@ -14,6 +14,12 @@ class MutationDecorator:
 	def setVelocityMutationThreshold(self, velocityMutationThreshold):
 		self.__velocityMutationThresholdPow2 = pow(velocityMutationThreshold, 2)
 
+	def setMutationFactor(self, mutationFactor):
+		self.__mutationFactor = mutationFactor
+
+	def setMutationNumber(self, mutationNumber):
+		self.__mutationNumber = mutationNumber
+
 	def getNewVelocity(self, particle):
 		newVelocity = self.__particleVelocityUpdateStrategy.getNewVelocity(particle)
 
