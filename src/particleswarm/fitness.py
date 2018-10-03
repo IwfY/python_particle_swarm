@@ -1,8 +1,9 @@
 class Fitness(object):
 
-	def __init__(self, buffering=False):
+	def __init__(self, name = '', buffering=False):
 		self.__buffer = {}
 		self.__buffering = buffering
+		self.__name = name
 
 	@staticmethod
 	def stateToTuple(state):
@@ -21,6 +22,8 @@ class Fitness(object):
 
 		return out
 
+	def getName(self):
+		return self.__name
 
 	def setBuffering(self, buffering):
 		'''
