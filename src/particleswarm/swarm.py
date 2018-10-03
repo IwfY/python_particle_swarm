@@ -203,10 +203,11 @@ class Swarm(object):
 		"""
 		writes data about particles to Elastic Search
 		"""
-		url = 'http://{}/{}/_doc'.format(serverUrl, indexName)
+		url = 'http://{}/{}/_doc/_bulk'.format(serverUrl, indexName)
 		currentBestPartice = self.getCurrentBestParticle()
 		historicBestFitness = self.getBestFitness()
 
+		requestPayLoad = ""
 		for particle in self.__particles:
 			out = {}
 			out['runName'] = self.__runName
@@ -221,7 +222,10 @@ class Swarm(object):
 				out['state.' + key] = value
 			for key, value in particle.getVelocity().items():
 				out['velocity.' + key] = value
-			r = requests.post(url, json=out)
+			requestPayLoad += json.dumps({'index': {}}) + "\n"
+			requestPayLoad += json.dumps(out) + "\n"
+
+		r = requests.post(url, headers={'Content-Type': 'application/json'}, data=requestPayLoad)
 
 
 	def writeParticlesCSVHeader(self):
