@@ -55,26 +55,6 @@ class Swarm(object):
 			self.__database.close()
 
 
-	def findSolution(self, fitnessAccepted=0.0, maxTurns=100):
-		if len(self.__particles) == 0:
-			return False
-
-		if not self.__fitnessObject:
-			return False
-
-		self.writeParticlesToDatabase(0)
-
-		for i in range(maxTurns):
-			if self.__fitnessObject.fitness(self.__bestState) < fitnessAccepted:
-				break
-			self.step()
-			self.writeParticlesToDatabase(i + 1)
-
-		self.__updateBestState()
-
-		return True
-
-
 	def step(self):
 		"""
 		update velocity of all particles and move them
@@ -199,11 +179,11 @@ class Swarm(object):
 		self.__database.commit()
 		cur.close()
 
-	def writeParticlesToElasticSearch(self, serverUrl, indexName, turn):
+	def writeParticlesToElasticSearch(self, serverUrl, indexName, turn, fitnessThreshold=100000):
 		"""
 		writes data about particles to Elastic Search
 		"""
-		url = 'http://{}/{}/_doc/_bulk'.format(serverUrl, indexName)
+		url = '{}/{}/_doc/_bulk'.format(serverUrl, indexName)
 		currentBestPartice = self.getCurrentBestParticle()
 		historicBestFitness = self.getBestFitness()
 
@@ -214,9 +194,11 @@ class Swarm(object):
 			out['particle'] = particle.getId()
 			out['turn'] = turn
 			out['fitness'] = particle.fitness()
+			out['isCurrentBest'] = int(particle == currentBestPartice)
+			if out['fitness'] > fitnessThreshold and out['isCurrentBest'] != 1:
+				continue
 			out['fitnessFunction'] = self.__fitnessObject.getName()
 			out['velocityLength'] = math.sqrt(particle.getSqrVelocityVectorLength())
-			out['isCurrentBest'] = int(particle == currentBestPartice)
 			out['isHistoricBest'] = int(out['fitness'] == historicBestFitness)
 			for key, value in particle.getState().items():
 				out['state.' + key] = value
@@ -225,7 +207,8 @@ class Swarm(object):
 			requestPayLoad += json.dumps({'index': {}}) + "\n"
 			requestPayLoad += json.dumps(out) + "\n"
 
-		r = requests.post(url, headers={'Content-Type': 'application/json'}, data=requestPayLoad)
+		if requestPayLoad != "":
+			r = requests.post(url, headers={'Content-Type': 'application/json'}, data=requestPayLoad)
 
 
 	def writeParticlesCSVHeader(self):
