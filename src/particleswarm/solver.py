@@ -70,4 +70,4 @@ class ParticleSwarmSolver(object):
 			if targetFitness is not None and currentBestFitness <= targetFitness:
 				break
 
-		return [self.__swarm.getBestState(), self.__swarm.getBestFitness]
+		return [self.__swarm.getBestState(), self.__swarm.getBestFitness()]
