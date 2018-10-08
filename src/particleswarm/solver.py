@@ -25,7 +25,7 @@ class ParticleSwarmSolver(object):
 		else:
 			particleVelocityUpdateStrategy = DefaultParticleVelocityUpdateStrategy(self.__swarm, 0.6, 0.3, 0.3, 0.3)
 			decoratedParticleVelocityUpdateStrategy = MutationDecorator(\
-				particleVelocityUpdateStrategy, velocityMutationThreshold=30, mutationFactor=4000, mutationNumber=len(self.__dimensions) // 4)
+				particleVelocityUpdateStrategy, velocityMutationThreshold=len(self.__dimensions) / 2, mutationFactor=2000, mutationNumber=len(self.__dimensions) // 4)
 			self.__swarm.setParticleVelcityUpdateStrategyObject(decoratedParticleVelocityUpdateStrategy)
 
 		for dimensionsName, dimnesionMin, dimensionMax in dimensions:
@@ -41,16 +41,16 @@ class ParticleSwarmSolver(object):
 	def getSwarm(self):
 		return self.__swarm
 
-	def solve(self, iterations, targetFitness=None, postStepFunction=None):
+	def solve(self, iterations, targetFitness=None, postStepFunctions=[]):
 		if self.__elasticSearchServer is not None:
-			self.__swarm.writeParticlesToElasticSearch(self.__elasticSearchServer, self.__elasticSearchIndex, 0, self.__elasticSearchThreshold)
+			self.__swarm.writeParticlesToElasticSearch(self.__elasticSearchServer, self.__elasticSearchIndex, turn=0, fitnessThreshold=self.__elasticSearchThreshold)
 
 		lastGlobalBestFitness = 999000000000
 		for i in range(1, iterations + 1):
 			self.__swarm.step()
 
 			if self.__elasticSearchServer is not None:
-				self.__swarm.writeParticlesToElasticSearch(self.__elasticSearchServer, self.__elasticSearchIndex, i, self.__elasticSearchThreshold)
+				self.__swarm.writeParticlesToElasticSearch(self.__elasticSearchServer, self.__elasticSearchIndex, turn=i, fitnessThreshold=self.__elasticSearchThreshold)
 
 			currentBestParticle = self.__swarm.getCurrentBestParticle()
 			currentBestState = currentBestParticle.getState()
@@ -64,8 +64,8 @@ class ParticleSwarmSolver(object):
 				print('   New Best. Delta: ' + str(round(lastGlobalBestFitness - currentBestFitness, 2)))
 				lastGlobalBestFitness = currentBestFitness
 
-			if postStepFunction is not None:
-				postStepFunction(self.__swarm)
+			for postStepFunction in postStepFunctions:
+				postStepFunction(swarm=self.__swarm, iteration=i, iterationCount=iterations)
 
 			if targetFitness is not None and currentBestFitness <= targetFitness:
 				break

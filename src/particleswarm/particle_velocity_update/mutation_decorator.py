@@ -29,6 +29,9 @@ class MutationDecorator:
 			for c in range(0, self.__mutationNumber):
 				keyToMutate = random.choice([i for i in newVelocity.keys()])
 				#print("Mutate: {}, {}, {}, {}".format(particle.getId(), keyToMutate, newVelocity[keyToMutate], newVelocity[keyToMutate] * self.__mutationFactor))
-				newVelocity[keyToMutate] *= self.__mutationFactor
+				if newVelocity[keyToMutate] == 0.0:
+					newVelocity[keyToMutate] = 0.1
+				else:
+					newVelocity[keyToMutate] *= self.__mutationFactor
 
 		return newVelocity
