@@ -311,7 +311,7 @@ class Swarm(object):
 				velocity[dimension[0]] = 0.0
 
 			for state in initialStates:
-				self.__particles.append(Particle(state, velocity.copy(), self.__fitnessObject))
+				self.__particles.append(Particle(state, velocity.copy(), self.__fitnessObject, self.__particleVelocityUpdateStrategy))
 		elif initialVelocityMethod == "random":
 			random.seed()
 
@@ -345,6 +345,11 @@ class Swarm(object):
 	def getDimensions(self):
 		return self.__dimensions
 
+	def getDimensionRangeSum(self):
+		sum = 0.0
+		for dimension in self.getDimensions():
+			sum += dimension[2] - dimension[1]
+		return sum
 
 	def getNumberOfProcesses(self):
 		return self.__processes
@@ -414,6 +419,13 @@ class Swarm(object):
 			return None
 
 		return self.__fitnessObject.fitness(self.__bestState)
+
+	def getAverageFitness(self):
+		sum = 0.0
+		for particle in self.getParticles():
+			sum += particle.fitness()
+
+		return sum / len(self.getParticles())
 
 	def getBestState(self):
 		return self.__bestState
