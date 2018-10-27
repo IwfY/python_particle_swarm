@@ -10,16 +10,22 @@ class Particle(object):
 		Particle.__lastId += 1
 		self.__state = state
 		self.__bestState = state.copy()
+		self.__bestStateFitness = None
 		self.__velocity = velocity
 		self.__fitnessObject = fitnessObject
 		self.__particleVelocityUpdateStrategy = particleVelocityUpdateStrategy
+		self.__cachedFitness = None
 
 
 	def fitness(self):
 		'''
 		returns the fitness of the particle
 		'''
-		return self.__fitnessObject.fitness(self.__state)
+		if self.__cachedFitness is not None:
+			return self.__cachedFitness
+
+		self.__cachedFitness = self.__fitnessObject.fitness(self.__state)
+		return self.__cachedFitness
 
 	def setVelcityUpdateStrategyObject(self, particleVelocityUpdateStrategy):
 		"""
@@ -37,9 +43,10 @@ class Particle(object):
 		for key in self.__state.keys():
 			self.__state[key] = self.__state[key] + self.__velocity[key]
 
-		#update local best fitness
-		if (self.fitness() < self.__fitnessObject.fitness(self.__bestState)):
-			self.__bestState = self.__state.copy()
+		# reset fitness cache
+		self.__cachedFitness = None
+
+		self.updateBestState()
 
 		return True
 
@@ -73,6 +80,20 @@ class Particle(object):
 
 	def getBestState(self):
 		return self.__bestState
+
+	def updateBestState(self):
+		#update local best fitness
+		currentFitness = self.fitness()
+		if currentFitness < self.getBestStateFitness():
+			self.__bestState = self.__state.copy()
+			self.__bestStateFitness = currentFitness
+
+	def getBestStateFitness(self):
+		if self.__bestStateFitness is not None:
+			return self.__bestStateFitness
+
+		self.__bestStateFitness = self.__fitnessObject.fitness(self.__bestState)
+		return self.__bestStateFitness
 
 	def setFitnessObject(self, fitnessObject):
 		self.__fitnessObject = fitnessObject
