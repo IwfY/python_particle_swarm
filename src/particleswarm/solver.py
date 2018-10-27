@@ -41,11 +41,29 @@ class ParticleSwarmSolver(object):
 	def getSwarm(self):
 		return self.__swarm
 
+	def printState(self, state):
+		strings = []
+		for key in state.keys():
+			strings.append('{}: {:10.4f}'.format(key, state[key]))
+
+		print(', '.join(strings))
+
 	def solve(self, iterations, targetFitness=None, postStepFunctions=[]):
+		print('##############################################################')
+		print('Population: {}'.format(len(self.__swarm.getParticles())))
+		print('Fitness function: {}'.format(self.__swarm.getFitnessObject().getName()))
+
+		currentBestParticle = self.__swarm.getCurrentBestParticle()
+		currentBestState = currentBestParticle.getState()
+		currentBestFitness = self.__swarm.getCurrentBestParticleFitness()
+		print('~~~~~~~ 0/' + str(iterations) + ' ~~~~~~~~~~~~~~~~~~~')
+		print('Id: ' + str(currentBestParticle.getId()))
+		self.printState(currentBestState)
+		print("Fitness : {:15,.2f}    |    Velo length : {:15,.2f}".format(currentBestFitness, math.sqrt(currentBestParticle.getSqrVelocityVectorLength())))
 		if self.__elasticSearchServer is not None:
 			self.__swarm.writeParticlesToElasticSearch(self.__elasticSearchServer, self.__elasticSearchIndex, turn=0, fitnessThreshold=self.__elasticSearchThreshold)
 
-		lastGlobalBestFitness = 999000000000
+		lastGlobalBestFitness = currentBestFitness
 		for i in range(1, iterations + 1):
 			self.__swarm.step()
 
@@ -57,12 +75,13 @@ class ParticleSwarmSolver(object):
 			currentBestFitness = self.__swarm.getCurrentBestParticleFitness()
 			print('~~~~~~~ ' + str(i) + '/' + str(iterations) + ' ~~~~~~~~~~~~~~~~~~~')
 			print('Id: ' + str(currentBestParticle.getId()))
-			print(currentBestState)
-			print('Velo length: ' + str(round(math.sqrt(currentBestParticle.getSqrVelocityVectorLength()), 5)))
-			print(round(currentBestFitness, 2))
+			self.printState(currentBestState)
 			if (currentBestFitness < lastGlobalBestFitness):
-				print('   New Best. Delta: ' + str(round(lastGlobalBestFitness - currentBestFitness, 2)))
+				print("Fitness : {:15,.2f}  ({:12,.3f})  |    Velo length : {:12,.3f}"
+					.format(currentBestFitness, -(lastGlobalBestFitness - currentBestFitness), math.sqrt(currentBestParticle.getSqrVelocityVectorLength())))
 				lastGlobalBestFitness = currentBestFitness
+			else:
+				print("Fitness : {:15,.2f}    |    Velo length : {:15,.2f}".format(currentBestFitness, math.sqrt(currentBestParticle.getSqrVelocityVectorLength())))
 
 			for postStepFunction in postStepFunctions:
 				postStepFunction(swarm=self.__swarm, iteration=i, iterationCount=iterations)
