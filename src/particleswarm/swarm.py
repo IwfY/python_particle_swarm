@@ -41,6 +41,7 @@ class Swarm(object):
 	def __init__(self):
 		self.__particles = []
 		self.__dimensions = []
+		self.__dimensionsDict = {}
 		self.__bestState = None
 		self.__fitnessObject = None
 		self.__database = None
@@ -81,6 +82,8 @@ class Swarm(object):
 					newState[dimension[0]] = random.uniform(dimension[1], dimension[2])
 				particle.setState(newState)
 
+	def getFitnessObject(self):
+		return self.__fitnessObject
 
 	def setFitnessObject(self, fitnessObject):
 		"""
@@ -207,6 +210,7 @@ class Swarm(object):
 			requestPayLoad += json.dumps({'index': {}}) + "\n"
 			requestPayLoad += json.dumps(out) + "\n"
 
+
 		if requestPayLoad != "":
 			r = requests.post(url, headers={'Content-Type': 'application/json'}, data=requestPayLoad)
 
@@ -249,6 +253,7 @@ class Swarm(object):
 			uniform
 			random
 			uniform_fill_random
+			random_magnet_border ... if value is within 10% next to min/max value of dimension it is set to that
 
 		valid mathods to initialize the velocity of a particle
 			zero		velocity is zero
@@ -266,7 +271,7 @@ class Swarm(object):
 
 		if distribution == "uniform" or distribution == "uniform_fill_random":
 			particlesPerDimension = int(math.floor(math.pow(particleCount, 1 / self.dimensionCount())))
-			if particlesPerDimension < 1:
+			if particlesPerDimension < 2:
 				return False
 
 			initialStates.append({})
@@ -297,6 +302,23 @@ class Swarm(object):
 					tmpState[dimension[0]] = random.uniform(dimension[1], dimension[2])
 				initialStates.append(tmpState.copy())
 
+		elif distribution == "random_magnet_border":
+			random.seed()
+			for i in range(particleCount):
+				tmpState = {}
+				for dimension in self.__dimensions:
+					randomValue =  random.uniform(dimension[1], dimension[2])
+
+					dimensionTenth = (dimension[2] - dimension[1]) / 10
+					if randomValue - dimensionTenth < dimension[1]:
+						randomValue = dimension[1]
+					elif randomValue + dimensionTenth > dimension[2]:
+						randomValue = dimension[2]
+
+					tmpState[dimension[0]] = randomValue
+
+				initialStates.append(tmpState.copy())
+
 		if distribution == "uniform_fill_random":
 			for i in range(len(initialStates), particleCount):
 				tmpState = {}
@@ -325,6 +347,10 @@ class Swarm(object):
 		return True
 
 
+	def getMinPopulationForUniformDistribution(self):
+		return pow(len(self.getDimensions()), 2)
+
+
 	def addDimension(self, name, lowerLimit=0.0, upperLimit=1.0):
 		"""
 		add a dimension to the problem space
@@ -337,6 +363,7 @@ class Swarm(object):
 			return False
 
 		self.__dimensions.append((name, float(lowerLimit), float(upperLimit)))
+		self.__dimensionsDict[name] = {'min': float(lowerLimit), 'max': float(upperLimit)}
 		return True
 
 	def dimensionCount(self):
@@ -344,6 +371,9 @@ class Swarm(object):
 
 	def getDimensions(self):
 		return self.__dimensions
+
+	def getDimensionsDict(self):
+		return self.__dimensionsDict
 
 	def getDimensionRangeSum(self):
 		sum = 0.0
@@ -432,3 +462,86 @@ class Swarm(object):
 
 	def getIteration(self):
 		return self.__iteration
+
+	def getDimensionNormalizedParticleState(self, particle):
+		normalizedState = {}
+		for key, value in particle.getState().items():
+			normalizedState[key] = (value - self.getDimensionsDict()[key]['min']) / (self.getDimensionsDict()[key]['max'] - self.getDimensionsDict()[key]['min'])
+
+		return normalizedState
+
+	def getNormalizedAverageDistanceToParticleNearestNeighbour(self):
+		normalizedStates = {}
+		sumOfDistances = 0.0
+		for particle in self.getParticles():
+			particleState = None
+			if particle.getId() in normalizedStates:
+				particleState = normalizedStates[particle.getId()]
+			else:
+				particleState = self.getDimensionNormalizedParticleState(particle)
+				normalizedStates[particle.getId()] = particleState
+			minDistance = None
+
+			# get distance to nearest neighbour normalized for dimension range and dimension count
+			for subParticle in self.getParticles():
+				if particle == subParticle:
+					continue
+
+				subParticleState = None
+				if subParticle.getId() in normalizedStates:
+					subParticleState = normalizedStates[subParticle.getId()]
+				else:
+					subParticleState = self.getDimensionNormalizedParticleState(subParticle)
+					normalizedStates[subParticle.getId()] = subParticleState
+
+				distance = 0.0
+				for key in particleState.keys():
+					distance += abs(particleState[key] - subParticleState[key])
+				distance /= len(self.getDimensions())
+				if minDistance is None:
+					minDistance = distance
+					continue
+
+				minDistance = min(minDistance, distance)
+			sumOfDistances += minDistance
+
+		return sumOfDistances / len(self.getParticles())
+
+	def getNormalizedMeanDistanceToParticleNearestNeighbour(self):
+		normalizedStates = {}
+		normalizedDistances = []
+		for particle in self.getParticles():
+			particleState = None
+			if particle.getId() in normalizedStates:
+				particleState = normalizedStates[particle.getId()]
+			else:
+				particleState = self.getDimensionNormalizedParticleState(particle)
+				normalizedStates[particle.getId()] = particleState
+			minDistance = None
+
+			# get distance to nearest neighbour normalized for dimension range and dimension count
+			for subParticle in self.getParticles():
+				if particle == subParticle:
+					continue
+
+				subParticleState = None
+				if subParticle.getId() in normalizedStates:
+					subParticleState = normalizedStates[subParticle.getId()]
+				else:
+					subParticleState = self.getDimensionNormalizedParticleState(subParticle)
+					normalizedStates[subParticle.getId()] = subParticleState
+
+				distance = 0.0
+				for key in particleState.keys():
+					distance += abs(particleState[key] - subParticleState[key])
+				distance /= len(self.getDimensions())
+				if minDistance is None:
+					minDistance = distance
+					continue
+
+				minDistance = min(minDistance, distance)
+			normalizedDistances.append(minDistance)
+
+		normalizedDistances.sort()
+
+		return normalizedDistances[len(normalizedDistances) // 2]
