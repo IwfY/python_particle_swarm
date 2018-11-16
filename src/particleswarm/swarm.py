@@ -346,6 +346,13 @@ class Swarm(object):
 		self.__updateBestState()
 		return True
 
+	def injectParticleState(self, state, index=0):
+		if len(self.__particles) < index + 1:
+			return
+
+		self.__particles[index].setState(state)
+		self.__updateBestState()
+
 
 	def getMinPopulationForUniformDistribution(self):
 		return pow(len(self.getDimensions()), 2)

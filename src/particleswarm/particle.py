@@ -76,7 +76,11 @@ class Particle(object):
 		return self.__state
 
 	def setState(self, state):
-		self.__state = state
+		self.__state = state.copy()
+		self.__cachedFitness = None
+		self.__bestStateFitness = None
+		self.resetLocalBest()
+		self.updateBestState()
 
 	def getBestState(self):
 		return self.__bestState
