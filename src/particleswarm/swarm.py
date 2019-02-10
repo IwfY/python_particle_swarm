@@ -334,13 +334,16 @@ class Swarm(object):
 
 			for state in initialStates:
 				self.__particles.append(Particle(state, velocity.copy(), self.__fitnessObject, self.__particleVelocityUpdateStrategy))
-		elif initialVelocityMethod == "random":
+		elif initialVelocityMethod == "random" or initialVelocityMethod == "random_10th":
 			random.seed()
+			multiplier = 1
+			if initialVelocityMethod == "random_10th":
+				multiplier = 0.1
 
 			for state in initialStates:
 				velocity = {}
 				for dimension in self.__dimensions:
-					velocity[dimension[0]] = random.uniform(-(dimension[2] - dimension[1]) / 2, (dimension[2] - dimension[1]) / 2)
+					velocity[dimension[0]] = random.uniform(-(dimension[2] - dimension[1]) / 2, (dimension[2] - dimension[1]) / 2) * multiplier
 				self.__particles.append(Particle(state, velocity.copy(), self.__fitnessObject, self.__particleVelocityUpdateStrategy))
 
 		self.__updateBestState()
@@ -456,6 +459,11 @@ class Swarm(object):
 			return None
 
 		return self.__fitnessObject.fitness(self.__bestState)
+
+	def getMeanFitness(self):
+		fitnesses = [particle.fitness() for particle in self.getParticles()]
+		fitnesses.sort()
+		return fitnesses[len(fitnesses) // 2]
 
 	def getAverageFitness(self):
 		sum = 0.0
