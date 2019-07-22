@@ -365,8 +365,7 @@ class Swarm(object):
 		"""
 		add a dimension to the problem space
 		"""
-		for (n, l, u) in self.__dimensions:
-			if n == name:
+		if self.hasDimension(name):
 				return False
 
 		if lowerLimit > upperLimit:
@@ -381,6 +380,12 @@ class Swarm(object):
 
 	def getDimensions(self):
 		return self.__dimensions
+
+	def hasDimension(self, dimensionName):
+		for (name, lower, upper) in self.__dimensions:
+			if name == dimensionName:
+				return True
+		return False
 
 	def getDimensionsDict(self):
 		return self.__dimensionsDict
