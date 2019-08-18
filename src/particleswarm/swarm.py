@@ -319,6 +319,30 @@ class Swarm(object):
 
 				initialStates.append(tmpState.copy())
 
+		elif distribution == "random_best_of_10":
+			if self.__fitnessObject is None:
+				return False
+			random.seed()
+			for i in range(particleCount):
+				bestState = None
+				bestStateFitness = None
+				for i in range(10):
+					tmpState = {}
+					for dimension in self.__dimensions:
+						tmpState[dimension[0]] = random.uniform(dimension[1], dimension[2])
+
+					if i == 0:
+						bestState = tmpState
+						bestStateFitness = self.__fitnessObject.fitness(tmpState)
+						continue
+
+					currentFitness = self.__fitnessObject.fitness(tmpState)
+					if currentFitness < bestStateFitness:
+						bestState = tmpState
+						bestStateFitness = currentFitness
+
+				initialStates.append(bestState.copy())
+
 		if distribution == "uniform_fill_random":
 			for i in range(len(initialStates), particleCount):
 				tmpState = {}
