@@ -1,5 +1,5 @@
 from particleswarm.particle import Particle
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import math
 import multiprocessing
@@ -48,7 +48,7 @@ class Swarm(object):
 		self.__processes = 1		# number of processes
 		self.__pool = None
 		self.__iteration = 0
-		self.__runName = datetime.now().isoformat()
+		self.__runName = datetime.now(timezone.utc).isoformat()
 
 
 	def __del__(self):
