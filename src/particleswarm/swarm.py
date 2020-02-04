@@ -43,6 +43,7 @@ class Swarm(object):
 		self.__dimensions = []
 		self.__dimensionsDict = {}
 		self.__bestState = None
+		self.__bestStateFitness = None
 		self.__fitnessObject = None
 		self.__database = None
 		self.__processes = 1		# number of processes
@@ -475,9 +476,15 @@ class Swarm(object):
 			return None
 
 		if self.__bestState == None:
-			self.__bestState = self.getCurrentBestParticle().getState().copy()
-		elif self.getCurrentBestParticleFitness() < self.__fitnessObject.fitness(self.__bestState):
-			self.__bestState = self.getCurrentBestParticle().getState().copy()
+			particle = self.getCurrentBestParticle()
+			self.__bestState = particle.getState().copy()
+			self.__bestStateFitness = particle.fitness()
+		else:
+			particle = self.getCurrentBestParticle()
+			fitness = particle.fitness()
+			if fitness < self.__bestStateFitness:
+				self.__bestState = particle.getState().copy()
+				self.__bestStateFitness = particle.fitness()
 
 
 	def getBestFitness(self):
@@ -487,7 +494,7 @@ class Swarm(object):
 		if self.__fitnessObject == None or self.__bestState == None:
 			return None
 
-		return self.__fitnessObject.fitness(self.__bestState)
+		return self.__bestStateFitness
 
 	def getMeanFitness(self):
 		fitnesses = [particle.fitness() for particle in self.getParticles()]

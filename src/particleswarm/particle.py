@@ -16,8 +16,7 @@ class Particle(object):
 		self.__particleVelocityUpdateStrategy = particleVelocityUpdateStrategy
 		self.__cachedFitness = None
 
-
-	def fitness(self):
+	def getFitness(self):
 		'''
 		returns the fitness of the particle
 		'''
@@ -26,6 +25,9 @@ class Particle(object):
 
 		self.__cachedFitness = self.__fitnessObject.fitness(self.__state)
 		return self.__cachedFitness
+
+	def fitness(self):
+		return self.getFitness()
 
 	def setVelcityUpdateStrategyObject(self, particleVelocityUpdateStrategy):
 		"""
