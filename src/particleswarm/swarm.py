@@ -197,7 +197,7 @@ class Swarm(object):
 			out['runName'] = self.__runName
 			out['particle'] = particle.getId()
 			out['turn'] = turn
-			out['fitness'] = particle.fitness()
+			out['fitness'] = float(particle.fitness())
 			out['isCurrentBest'] = int(particle == currentBestPartice)
 			if out['fitness'] > fitnessThreshold and out['isCurrentBest'] != 1:
 				continue
@@ -205,12 +205,11 @@ class Swarm(object):
 			out['velocityLength'] = math.sqrt(particle.getSqrVelocityVectorLength())
 			out['isHistoricBest'] = int(out['fitness'] == historicBestFitness)
 			for key, value in particle.getState().items():
-				out['state.' + key] = value
+				out['state.' + key] = float(value)
 			for key, value in particle.getVelocity().items():
-				out['velocity.' + key] = value
+				out['velocity.' + key] = float(value)
 			requestPayLoad += json.dumps({'index': {}}) + "\n"
 			requestPayLoad += json.dumps(out) + "\n"
-
 
 		if requestPayLoad != "":
 			r = requests.post(url, headers={'Content-Type': 'application/json'}, data=requestPayLoad)
