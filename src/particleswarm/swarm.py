@@ -183,7 +183,7 @@ class Swarm(object):
 		self.__database.commit()
 		cur.close()
 
-	def writeParticlesToElasticSearch(self, serverUrl, indexName, turn, fitnessThreshold=100000):
+	def writeParticlesToElasticSearch(self, serverUrl, indexName, turn, fitnessThreshold=100000, historicBestOnly=False):
 		"""
 		writes data about particles to Elastic Search
 		"""
@@ -201,9 +201,11 @@ class Swarm(object):
 			out['isCurrentBest'] = int(particle == currentBestPartice)
 			if out['fitness'] > fitnessThreshold and out['isCurrentBest'] != 1:
 				continue
+			out['isHistoricBest'] = int(out['fitness'] == historicBestFitness)
+			if historicBestOnly == True and out['isHistoricBest'] == False:
+				continue
 			out['fitnessFunction'] = self.__fitnessObject.getName()
 			out['velocityLength'] = math.sqrt(particle.getSqrVelocityVectorLength())
-			out['isHistoricBest'] = int(out['fitness'] == historicBestFitness)
 			for key, value in particle.getState().items():
 				out['state.' + key] = float(value)
 			for key, value in particle.getVelocity().items():

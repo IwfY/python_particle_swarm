@@ -16,6 +16,7 @@ class ParticleSwarmSolver(object):
 		self.__elasticSearchServer = None
 		self.__elasticSearchIndex = None
 		self.__elasticSearchThreshold = None
+		self.__elasticSearchhistoricBestOnly = None
 
 		self.__swarm = Swarm()
 		self.__swarm.setFitnessObject(self.__fitnessObject)
@@ -33,10 +34,11 @@ class ParticleSwarmSolver(object):
 
 		self.__swarm.populate(self.__populationCount, self.__initDistributionMethod, self.__initVelocityMethod)
 
-	def setElasticSearchServer(self, serverBaseUrl, indexName, fitnessThreshold=100000):
+	def setElasticSearchServer(self, serverBaseUrl, indexName, fitnessThreshold=100000, historicBestOnly=False):
 		self.__elasticSearchServer = serverBaseUrl
 		self.__elasticSearchIndex = indexName
 		self.__elasticSearchThreshold = fitnessThreshold
+		self.__elasticSearchhistoricBestOnly = historicBestOnly
 
 	def getSwarm(self):
 		return self.__swarm
@@ -61,14 +63,24 @@ class ParticleSwarmSolver(object):
 		self.printState(currentBestState)
 		print("Fitness : {:15,.2f}    |    Velo length : {:15,.2f}".format(currentBestFitness, math.sqrt(currentBestParticle.getSqrVelocityVectorLength())))
 		if self.__elasticSearchServer is not None:
-			self.__swarm.writeParticlesToElasticSearch(self.__elasticSearchServer, self.__elasticSearchIndex, turn=0, fitnessThreshold=self.__elasticSearchThreshold)
+			self.__swarm.writeParticlesToElasticSearch(
+				self.__elasticSearchServer,
+				self.__elasticSearchIndex,
+				turn=0,
+				fitnessThreshold=self.__elasticSearchThreshold,
+				historicBestOnly=self.__elasticSearchhistoricBestOnly)
 
 		lastGlobalBestFitness = currentBestFitness
 		for i in range(1, iterations + 1):
 			self.__swarm.step()
 
 			if self.__elasticSearchServer is not None:
-				self.__swarm.writeParticlesToElasticSearch(self.__elasticSearchServer, self.__elasticSearchIndex, turn=i, fitnessThreshold=self.__elasticSearchThreshold)
+				self.__swarm.writeParticlesToElasticSearch(
+					self.__elasticSearchServer,
+					self.__elasticSearchIndex,
+					turn=i,
+					fitnessThreshold=self.__elasticSearchThreshold,
+					historicBestOnly=self.__elasticSearchhistoricBestOnly)
 
 			currentBestParticle = self.__swarm.getCurrentBestParticle()
 			currentBestState = currentBestParticle.getState()
