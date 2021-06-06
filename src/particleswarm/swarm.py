@@ -181,36 +181,6 @@ class Swarm(object):
 		self.__database.commit()
 		cur.close()
 
-	def writeParticlesCSVHeader(self):
-		"""
-		writes data about particles to file
-		"""
-		with open('swarm_run.csv', 'w') as f:
-			particle = self.__particles[0]
-			line = ""
-			line += "id,iteration,particle_id,fitness,velocity_length,is_historic_best,is_current_best,"
-			state = particle.getState()
-			for key in state:
-				line += "state.{},velocity.{},".format(key, key)
-			f.write(line + '\n')
-
-	def writeParticlesToCSV(self, turn):
-		"""
-		writes data about particles to file
-		"""
-		currentBestPartice = self.getCurrentBestParticle()
-		historicBestFitness = self.getBestFitness()
-		with open('swarm_run.csv', 'a') as f:
-			for particle in self.__particles:
-				line = ""
-				line += "{},{},{},{},{},".format(turn * (len(self.__particles) + 1)  + particle.getId(), turn, particle.getId(), particle.fitness(), math.sqrt(particle.getSqrVelocityVectorLength()))
-				line += "{},{},".format(int(particle.fitness() == historicBestFitness), int(particle == currentBestPartice))
-				state = particle.getState()
-				velocity = particle.getVelocity()
-				for key in state:
-					line += "{},{},".format(state[key], velocity[key])
-				f.write(line + '\n')
-
 	def populate(self, particleCount=100, distribution="uniform", initialVelocityMethod="zero"):
 		"""
 		initialize particles that are spread over the problem space
