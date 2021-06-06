@@ -1,11 +1,9 @@
 from particleswarm.particle import Particle
 from datetime import datetime, timezone
-import json
 import math
 import multiprocessing
 import os
 import random
-import requests
 import sqlite3
 
 
@@ -182,40 +180,6 @@ class Swarm(object):
 
 		self.__database.commit()
 		cur.close()
-
-	def writeParticlesToElasticSearch(self, serverUrl, indexName, turn, fitnessThreshold=100000, historicBestOnly=False):
-		"""
-		writes data about particles to Elastic Search
-		"""
-		url = '{}/{}/_doc/_bulk'.format(serverUrl, indexName)
-		currentBestPartice = self.getCurrentBestParticle()
-		historicBestFitness = self.getBestFitness()
-
-		requestPayLoad = ""
-		for particle in self.__particles:
-			out = {}
-			out['runName'] = self.__runName
-			out['particle'] = particle.getId()
-			out['turn'] = turn
-			out['fitness'] = float(particle.fitness())
-			out['isCurrentBest'] = int(particle == currentBestPartice)
-			if out['fitness'] > fitnessThreshold and out['isCurrentBest'] != 1:
-				continue
-			out['isHistoricBest'] = int(out['fitness'] == historicBestFitness)
-			if historicBestOnly == True and out['isHistoricBest'] == False:
-				continue
-			out['fitnessFunction'] = self.__fitnessObject.getName()
-			out['velocityLength'] = math.sqrt(particle.getSqrVelocityVectorLength())
-			for key, value in particle.getState().items():
-				out['state.' + key] = float(value)
-			for key, value in particle.getVelocity().items():
-				out['velocity.' + key] = float(value)
-			requestPayLoad += json.dumps({'index': {}}) + "\n"
-			requestPayLoad += json.dumps(out) + "\n"
-
-		if requestPayLoad != "":
-			r = requests.post(url, headers={'Content-Type': 'application/json'}, data=requestPayLoad)
-
 
 	def writeParticlesCSVHeader(self):
 		"""
@@ -438,6 +402,8 @@ class Swarm(object):
 	def getParticles(self):
 		return self.__particles
 
+	def getRunName(self):
+		return self.__runName
 
 	def getCurrentBestParticle(self):
 		if not self.__particles:

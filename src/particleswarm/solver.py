@@ -2,6 +2,7 @@ import math
 from particleswarm.default_particle_velocity_update_strategy import DefaultParticleVelocityUpdateStrategy
 from particleswarm.particle_velocity_update.mutation_decorator import MutationDecorator
 from particleswarm.swarm import Swarm
+from particleswarm.swarm_elasticsearch_exporter import SwarmElasticsearchExporter
 
 class ParticleSwarmSolver(object):
 	"""
@@ -13,10 +14,7 @@ class ParticleSwarmSolver(object):
 		self.__fitnessObject = fitnessObject
 		self.__dimensions = dimensions
 		self.__populationCount, self.__initDistributionMethod, self.__initVelocityMethod = populationInformation
-		self.__elasticSearchServer = None
-		self.__elasticSearchIndex = None
-		self.__elasticSearchThreshold = None
-		self.__elasticSearchhistoricBestOnly = None
+		self.__swarmElasticsearchExporter = None
 
 		self.__swarm = Swarm()
 		self.__swarm.setFitnessObject(self.__fitnessObject)
@@ -34,11 +32,8 @@ class ParticleSwarmSolver(object):
 
 		self.__swarm.populate(self.__populationCount, self.__initDistributionMethod, self.__initVelocityMethod)
 
-	def setElasticSearchServer(self, serverBaseUrl, indexName, fitnessThreshold=100000, historicBestOnly=False):
-		self.__elasticSearchServer = serverBaseUrl
-		self.__elasticSearchIndex = indexName
-		self.__elasticSearchThreshold = fitnessThreshold
-		self.__elasticSearchhistoricBestOnly = historicBestOnly
+	def setElasticSearchServer(self, serverBaseUrl, indexName, fitnessThreshold=100000, historicBestOnly=False, minTurn=None):
+		self.__swarmElasticsearchExporter = SwarmElasticsearchExporter(serverBaseUrl, indexName, fitnessThreshold, historicBestOnly, minTurn)
 
 	def getSwarm(self):
 		return self.__swarm
@@ -62,25 +57,15 @@ class ParticleSwarmSolver(object):
 		print('Id: ' + str(currentBestParticle.getId()))
 		self.printState(currentBestState)
 		print("Fitness : {:15,.2f}    |    Velo length : {:15,.2f}".format(currentBestFitness, math.sqrt(currentBestParticle.getSqrVelocityVectorLength())))
-		if self.__elasticSearchServer is not None:
-			self.__swarm.writeParticlesToElasticSearch(
-				self.__elasticSearchServer,
-				self.__elasticSearchIndex,
-				turn=0,
-				fitnessThreshold=self.__elasticSearchThreshold,
-				historicBestOnly=self.__elasticSearchhistoricBestOnly)
+		if self.__swarmElasticsearchExporter is not None:
+			self.__swarmElasticsearchExporter.writeParticles(swarm=self.getSwarm(), turn=0)
 
 		lastGlobalBestFitness = currentBestFitness
 		for i in range(1, iterations + 1):
 			self.__swarm.step()
 
-			if self.__elasticSearchServer is not None:
-				self.__swarm.writeParticlesToElasticSearch(
-					self.__elasticSearchServer,
-					self.__elasticSearchIndex,
-					turn=i,
-					fitnessThreshold=self.__elasticSearchThreshold,
-					historicBestOnly=self.__elasticSearchhistoricBestOnly)
+			if self.__swarmElasticsearchExporter is not None:
+				self.__swarmElasticsearchExporter.writeParticles(swarm=self.getSwarm(), turn=i)
 
 			currentBestParticle = self.__swarm.getCurrentBestParticle()
 			currentBestState = currentBestParticle.getState()
