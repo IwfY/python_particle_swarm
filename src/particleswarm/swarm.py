@@ -1,3 +1,5 @@
+import copyreg
+import types
 from particleswarm.particle import Particle
 from datetime import datetime, timezone
 import math
@@ -8,13 +10,13 @@ import sqlite3
 
 
 # code to make methods able to be used by pickle
-# see http://bytes.com/topic/python/answers/
-#	         552476-why-cant-you-pickle-instancemethods
+# see http://bytes.com/topic/python/answers/552476-why-cant-you-pickle-instancemethods
 def _pickle_method(method):
 	func_name = method.__func__.__name__
 	obj = method.__self__
 	cls = method.__self__.__class__
 	return _unpickle_method, (func_name, obj, cls)
+
 
 def _unpickle_method(func_name, obj, cls):
 	for cls in cls.mro():
@@ -26,8 +28,7 @@ def _unpickle_method(func_name, obj, cls):
 			break
 	return func.__get__(obj, cls)
 
-import copyreg
-import types
+
 copyreg.pickle(types.MethodType, _pickle_method, _unpickle_method)
 
 
@@ -43,17 +44,10 @@ class Swarm(object):
 		self.__bestState = None
 		self.__bestStateFitness = None
 		self.__fitnessObject = None
-		self.__database = None
 		self.__processes = 1		# number of processes
 		self.__pool = None
 		self.__iteration = 0
 		self.__runName = datetime.now(timezone.utc).isoformat()
-
-
-	def __del__(self):
-		if self.__database:
-			self.__database.close()
-
 
 	def step(self):
 		"""
@@ -64,7 +58,6 @@ class Swarm(object):
 			particle.move()
 		self.__updateBestState()
 		self.__iteration += 1
-
 
 	def resetSmallVelocities(self, maxVelocityLength):
 		maxVelocityLengthSqr = maxVelocityLength * maxVelocityLength
@@ -92,7 +85,6 @@ class Swarm(object):
 		for particle in self.__particles:
 			particle.setFitnessObject(fitnessObject)
 
-
 	def setParticleVelcityUpdateStrategyObject(self, particleVelocityUpdateStrategy):
 		"""
 		set fitness object and propagate to particles
@@ -100,29 +92,6 @@ class Swarm(object):
 		self.__particleVelocityUpdateStrategy = particleVelocityUpdateStrategy
 		for particle in self.__particles:
 			particle.setVelcityUpdateStrategyObject(particleVelocityUpdateStrategy)
-
-	def setDatabase(self, dbName, continueWrite=False):
-		"""
-		create a database
-
-		@param dbName string path to the database
-		@param continueWrite boolean when true continue writing to the
-			database if it already exists, when false throw a ValueError
-			exception when attempting to overwrite an existing file
-		"""
-
-		if os.path.exists(dbName) and not continueWrite:
-			raise ValueError()
-
-		self.__database = sqlite3.connect(dbName)
-		cur = self.__database.cursor()
-
-		cur.execute("""CREATE TABLE IF NOT EXISTS particle_state
-					(iteration INT, id INT, state VARCHAR(4096),
-					velocity VARCHAR(4096), fitness FLOAT)""")
-		self.__database.commit()
-		cur.close()
-
 
 	def loadParticlesFromDatabase(self, database, turn=-1):
 		"""Delete all particles, populate swarm from particle states in
@@ -166,34 +135,19 @@ class Swarm(object):
 
 		self.__updateBestState()
 
-
-	def writeParticlesToDatabase(self, turn):
-		"""
-		writes data about particles to database if available
-		"""
-		if self.__database == None:
-			return
-
-		cur = self.__database.cursor()
-		for particle in self.__particles:
-			cur.execute("""INSERT INTO particle_state (iteration, id, state, velocity, fitness) VALUES ({}, {}, "{}", "{}", {})""".format(turn, particle.getId(), str(particle.getState()), str(particle.getVelocity()), particle.fitness()))
-
-		self.__database.commit()
-		cur.close()
-
 	def populate(self, particleCount=100, distribution="uniform", initialVelocityMethod="zero"):
 		"""
 		initialize particles that are spread over the problem space
 
 		valid distribution mathods are:
-			uniform
-			random
-			uniform_fill_random
-			random_magnet_border ... if value is within 10% next to min/max value of dimension it is set to that
+						uniform
+						random
+						uniform_fill_random
+						random_magnet_border ... if value is within 10% next to min/max value of dimension it is set to that
 
 		valid mathods to initialize the velocity of a particle
-			zero		velocity is zero
-			random		velocity is a random vector
+						zero		velocity is zero
+						random		velocity is a random vector
 		"""
 
 		if self.dimensionCount() == 0:
@@ -201,7 +155,6 @@ class Swarm(object):
 
 		if particleCount < 1:
 			return False
-
 
 		initialStates = []
 
@@ -220,16 +173,16 @@ class Swarm(object):
 						tmpState = state.copy()
 						tmpState[dimension[0]] = dimension[1] + i * stepPerState
 						tmpStates.append(tmpState)
-						#end for i in range(particlesPerDimension)
+						# end for i in range(particlesPerDimension)
 
 					rmStates.append(state)
-					#end for state in initialStates
+					# end for state in initialStates
 
 				for state in rmStates:
 					initialStates.remove(state)
 
 				initialStates.extend(tmpStates)
-				#end for dimension in self.__dimensions
+				# end for dimension in self.__dimensions
 		elif distribution == "random":
 			random.seed()
 			for i in range(particleCount):
@@ -243,7 +196,7 @@ class Swarm(object):
 			for i in range(particleCount):
 				tmpState = {}
 				for dimension in self.__dimensions:
-					randomValue =  random.uniform(dimension[1], dimension[2])
+					randomValue = random.uniform(dimension[1], dimension[2])
 
 					dimensionTenth = (dimension[2] - dimension[1]) / 10
 					if randomValue - dimensionTenth < dimension[1]:
@@ -286,7 +239,6 @@ class Swarm(object):
 					tmpState[dimension[0]] = random.uniform(dimension[1], dimension[2])
 				initialStates.append(tmpState.copy())
 
-
 		if initialVelocityMethod == "zero":
 			velocity = {}
 			for dimension in self.__dimensions:
@@ -316,17 +268,15 @@ class Swarm(object):
 		self.__particles[index].setState(state)
 		self.__updateBestState()
 
-
 	def getMinPopulationForUniformDistribution(self):
 		return pow(len(self.getDimensions()), 2)
-
 
 	def addDimension(self, name, lowerLimit=0.0, upperLimit=1.0):
 		"""
 		add a dimension to the problem space
 		"""
 		if self.hasDimension(name):
-				return False
+			return False
 
 		if lowerLimit > upperLimit:
 			return False
@@ -368,7 +318,6 @@ class Swarm(object):
 		else:
 			self.__pool = None
 
-
 	def getParticles(self):
 		return self.__particles
 
@@ -400,7 +349,6 @@ class Swarm(object):
 
 			return bestParticle
 
-
 	def getCurrentBestParticleFitness(self):
 		bestParticle = self.getCurrentBestParticle()
 		if bestParticle == None:
@@ -422,7 +370,6 @@ class Swarm(object):
 			if fitness < self.__bestStateFitness:
 				self.__bestState = particle.getState().copy()
 				self.__bestStateFitness = particle.fitness()
-
 
 	def getBestFitness(self):
 		"""
