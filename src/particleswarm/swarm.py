@@ -269,7 +269,7 @@ class Swarm(object):
         self.__updateBestState()
 
     def getMinPopulationForUniformDistribution(self):
-        return pow(len(self.getDimensions()), 2)
+        return pow(2, len(self.getDimensions()))
 
     def addDimension(self, name, lowerLimit=0.0, upperLimit=1.0):
         """
