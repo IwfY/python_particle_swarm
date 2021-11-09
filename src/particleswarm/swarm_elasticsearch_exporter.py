@@ -2,6 +2,7 @@ import json
 import math
 import requests
 
+
 class SwarmElasticsearchExporter(object):
     def __init__(self, server, indexName, fitnessThreshold=100000, historicBestOnly=False, minTurn=None):
         self.__server = server

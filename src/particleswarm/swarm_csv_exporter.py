@@ -1,5 +1,6 @@
 import math
 
+
 class SwarmCsvExporter(object):
     def __init__(self, filename='swarm_run.csv'):
         self.__filename = filename
@@ -27,7 +28,7 @@ class SwarmCsvExporter(object):
             for particle in swarm.getParticles():
                 line = ""
                 line += "{},{},{},{},{},".format(
-                    turn * (len(swarm.getParticles()) + 1)  + particle.getId(),
+                    turn * (len(swarm.getParticles()) + 1) + particle.getId(),
                     turn, particle.getId(),
                     particle.fitness(),
                     math.sqrt(particle.getSqrVelocityVectorLength()))
