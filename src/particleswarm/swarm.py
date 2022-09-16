@@ -262,11 +262,11 @@ class Swarm(object):
         return True
 
     def injectParticleState(self, state, index=0):
-        if len(self.__particles) < index + 1:
+        if index > len(self.__particles) - 1:
             return
 
         self.__particles[index].setState(state)
-        self.__updateBestState()
+        self.__updateBestState(noCache=True)
 
     def getMinPopulationForUniformDistribution(self):
         return pow(2, len(self.getDimensions()))
@@ -356,11 +356,11 @@ class Swarm(object):
 
         return bestParticle.fitness()
 
-    def __updateBestState(self):
+    def __updateBestState(self, noCache=False):
         if not self.__particles:
             return None
 
-        if self.__bestState == None:
+        if self.__bestState == None or noCache == True:
             particle = self.getCurrentBestParticle()
             self.__bestState = particle.getState().copy()
             self.__bestStateFitness = particle.fitness()
