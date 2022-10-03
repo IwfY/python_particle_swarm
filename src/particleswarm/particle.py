@@ -75,10 +75,13 @@ class Particle(object):
         return self.__state
 
     def setState(self, state):
+        """
+        Set the state and reset historical best
+        """
         self.__state = state.copy()
         self.__cachedFitness = None
+        self.__bestState = state.copy()
         self.__bestStateFitness = None
-        self.resetLocalBest()
         self.updateBestState()
 
     def getBestState(self):
@@ -92,6 +95,9 @@ class Particle(object):
             self.__bestStateFitness = currentFitness
 
     def getBestStateFitness(self):
+        """
+        Get historical best state of the particle
+        """
         if self.__bestStateFitness is not None:
             return self.__bestStateFitness
 
@@ -107,6 +113,3 @@ class Particle(object):
     def resetVelocity(self):
         for key in self.__velocity.keys():
             self.__velocity[key] = 0.0
-
-    def resetLocalBest(self):
-        self.__localBest = self.__state.copy()
